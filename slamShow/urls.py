@@ -32,15 +32,18 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import pointCloud.url  # 先导入应用的urls模块
 from pointCloud import views
 from slamShow import settings
-
+# startScan   开始扫描
+# stopScan    停止扫描
+# point_cloud 点云切割为瓦片，路径url添加到数据库
+# point_cloud/id/ 获取瓦片点云路径url、id等数据
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     # url(r'^users/', include('users.urls')),
     url(r'^testPoint/', include((pointCloud.url, 'pointCloud'), namespace='pointCloud')),  # 添加应用的路由
     # url(r'^books/$', views.BooksAPIVIew.as_view()),
-    url(r'^books2/$', views.point_delete),
+    url(r'^pointCloudBlank/$', views.point_delete),
     url(r'^books_all/$', views.point_get),
-    url(r'^pointClouds/(?P<pk>\d+)/$', views.BooksAPIVIew.as_view()),
+    url(r'^pointClouds/(?P<pk>\d+)/$', views.PointAPIVIew.as_view()),
     url(r'^startScan/$', views.start_scan),
     url(r'^stopScan/$', views.stop_scan),
     url(r'^point_cloud/$', views.add_point_cloud),

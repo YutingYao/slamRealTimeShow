@@ -164,9 +164,9 @@ def generate_tile(pk, point_cloud_number, conver_number):
             pointCloudUrl.save()
 
 
-class BooksAPIVIew(View):
+class PointAPIVIew(View):
     """
-    查询所有图书、增加图书
+    增加点云数据
     """
 
     @csrf_exempt
@@ -426,22 +426,6 @@ class PointCloudAPIView(View):
 
 
 @csrf_exempt
-def point_delete(request):
-    """
-    删除所有的点
-    路由： DELETE /books/<pk>/
-    """
-    try:
-        book = PointCloudChunk.objects.all()
-    except PointCloudChunk.DoesNotExist:
-        return HttpResponse(status=404)
-
-    book.delete()
-
-    return HttpResponse(status=204)
-
-
-@csrf_exempt
 def point_get(request):
     """
     删除图书
@@ -458,6 +442,8 @@ def point_get(request):
     return HttpResponse({"all_book2": "book"})
 
 
+# TODO: 下面是所有接口
+# step 1、接受开始扫描状态
 @csrf_exempt
 def start_scan(request):
     """
@@ -474,7 +460,6 @@ def start_scan(request):
         tile_src_path = MEDIA_ROOT + "/conver"
         shutil.rmtree(pts_src_path)
         shutil.rmtree(tile_src_path)
-        print('删除完创建')
         sleep(1)
         os.mkdir(pts_src_path)
         os.mkdir(tile_src_path)
@@ -487,6 +472,7 @@ def start_scan(request):
     return HttpResponse({"all_book2": "book"})
 
 
+# step 4、接受停止扫描状态
 @csrf_exempt
 def stop_scan(request):
     """
@@ -498,13 +484,14 @@ def stop_scan(request):
         # print("book")
         # for item in point_list:
         #     print('点云=>:', item)
-        print('停止扫描，停止数据请求操作')
+        print('停止扫描，停止数据请求操作，修改变量')
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=404)
 
     return HttpResponse({"all_book2": "book"})
 
 
+# step 2、点云瓦片切割，并存储瓦片url
 @csrf_exempt
 def add_point_cloud(request):
     """
@@ -520,10 +507,6 @@ def add_point_cloud(request):
                       str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
             track_dict['ep']) + ' ' + \
                       str(track_dict['ey']) + ' ' + str(track_dict['d'])
-        # print('打印字符串格式track_point=>：', track_point)
-        # 读取原始点云文件夹,对点云进行切割
-        # point_cloud_path = MEDIA_ROOT + "/pointCloud"  # 点云原始文件文件夹
-        # point_cloud_number = read_point_cloud_dir1(point_cloud_path, track_dict['id'])  # 读取原始点云数量
         point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # 点云原始文件文件夹
         if os.path.isfile(point_cloud_path):
             # point_cloud_name = str(track_dict['id']) + ".pcd"
@@ -559,6 +542,7 @@ def add_point_cloud(request):
     return HttpResponse(status=201)
 
 
+# step 3、获取瓦片url
 @csrf_exempt
 def get_point_cloud(request, pk):
     track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
@@ -600,3 +584,20 @@ def get_point_cloud(request, pk):
             "message": False
         }
         return JsonResponse(message_info, safe=False)
+
+
+# 清除数据库所有数据--正式版本不需要此功能，直接在开始扫描状态接口中清空数据库
+@csrf_exempt
+def point_delete(request):
+    """
+    删除所有的点
+    路由： DELETE /books/<pk>/
+    """
+    try:
+        book = PointCloudChunk.objects.all()
+    except PointCloudChunk.DoesNotExist:
+        return HttpResponse(status=404)
+
+    book.delete()
+
+    return HttpResponse(status=204)
