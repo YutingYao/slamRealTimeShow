@@ -42,7 +42,9 @@ urlpatterns = [
     url(r'^books_all/$', views.point_get),
     url(r'^pointClouds/(?P<pk>\d+)/$', views.BooksAPIVIew.as_view()),
     url(r'^startScan/$', views.start_scan),
-    url(r'^stopScan/$', views.stop_scan)
+    url(r'^stopScan/$', views.stop_scan),
+    url(r'^point_cloud/$', views.add_point_cloud),
+    url(r'^point_cloud/(?P<pk>\d+)/$', views.get_point_cloud),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()  # 设置静态文件 部署到服务器静态文件不这样设置

@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 
 from libs.PotreeConverter import test_read_point_cloud_dir, test_run_PotreeConverter_exe, read_conver_dir, \
-    read_point_cloud_dir, read_track
+    read_point_cloud_dir, read_track, read_point_cloud_file, run_PotreeConverter_exe_tile
 from pointCloud.models import BookInfo, PointCloudChunk
 from slamShow.settings import MEDIA_ROOT
 import json
@@ -189,7 +189,7 @@ class BooksAPIVIew(View):
             message_info = {
                 "message": False
             }
-            if pk == 99999: # 首次请求，存在瓦片返回数据
+            if pk == 99999:  # 首次请求，存在瓦片返回数据
                 queryset2 = PointCloudChunk.objects.all()
                 point_list = []
                 print('pk 值 和 类型 =>:', pk, type(pk))
@@ -457,6 +457,7 @@ def point_get(request):
 
     return HttpResponse({"all_book2": "book"})
 
+
 @csrf_exempt
 def start_scan(request):
     """
@@ -502,3 +503,100 @@ def stop_scan(request):
         return HttpResponse(status=404)
 
     return HttpResponse({"all_book2": "book"})
+
+
+@csrf_exempt
+def add_point_cloud(request):
+    """
+    stop scan
+    路由： DELETE /scan_end/
+    """
+    try:
+        track_path = MEDIA_ROOT + "/track/trackPoint.txt"
+        json_bytes = request.body
+        # json_str = json_bytes.decode()
+        track_dict = json.loads(json_bytes)
+        track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
+                      str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
+            track_dict['ep']) + ' ' + \
+                      str(track_dict['ey']) + ' ' + str(track_dict['d'])
+        # print('打印字符串格式track_point=>：', track_point)
+        # 读取原始点云文件夹,对点云进行切割
+        # point_cloud_path = MEDIA_ROOT + "/pointCloud"  # 点云原始文件文件夹
+        # point_cloud_number = read_point_cloud_dir1(point_cloud_path, track_dict['id'])  # 读取原始点云数量
+        point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # 点云原始文件文件夹
+        if os.path.isfile(point_cloud_path):
+            # point_cloud_name = str(track_dict['id']) + ".pcd"
+            point_cloud_rename = str(track_dict['id']) + ".xyz"
+            point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # 点云原始文件文件夹
+            os.rename(point_cloud_path, point_cloud_repath)
+            print('点云存在')
+            cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)
+            pointCloudUrl = PointCloudChunk(
+                cloud_project='点云项目',
+                cloud_name='点云名称',
+                cloud_url=cloud_url,
+                cloud_id=str(track_dict['id'])
+            )
+            pointCloudUrl.save()
+            print('cloud_url=>:', cloud_url)
+            # 点云存在,进行点云切割
+
+        else:
+            # 点云不存在，直接跳过操作
+            print('点云不存在', point_cloud_path)
+        # 轨迹点追加
+        with open(track_path, 'a+') as f:
+            # json_str = json.dumps(dict, indent=0)
+            f.write(track_point)
+            f.write('\n')
+            f.close()
+
+
+    except PointCloudChunk.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return HttpResponse(status=201)
+
+
+@csrf_exempt
+def get_point_cloud(request, pk):
+    track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
+    current_id = int(pk)
+    queryset2 = PointCloudChunk.objects.all()
+    point_list = []
+    for point_cloud_item in queryset2:
+        if current_id != 99999:  # 判断是否是初次请求或者刷新页面后的请求
+            if point_cloud_item.cloud_id > current_id:
+                point_list.append({
+                    'cloud_id': point_cloud_item.cloud_id,
+                    'cloud_name': point_cloud_item.cloud_name,
+                    'cloud_url': point_cloud_item.cloud_url,
+                    'cloud_project': point_cloud_item.cloud_project,
+                })
+        else:
+            point_list.append({
+                'cloud_id': point_cloud_item.cloud_id,
+                'cloud_name': point_cloud_item.cloud_name,
+                'cloud_url': point_cloud_item.cloud_url,
+                'cloud_project': point_cloud_item.cloud_project,
+            })
+
+    if point_list:  # 需要返回点云
+        point_list_length = len(point_list)
+        track_data = read_track(track_path)  # 读取轨迹数据
+        # if current_id != 99999:
+        #     valid_track_data = track_data[:point_list_length]
+        # else:
+        #     valid_track_data = track_data[:point_list_length]
+        test_list_point = {
+            "track": track_data,
+            "point": point_list,
+            "message": True
+        }
+        return JsonResponse(test_list_point, safe=False)
+    else:  # 不需要返回点云数据
+        message_info = {
+            "message": False
+        }
+        return JsonResponse(message_info, safe=False)

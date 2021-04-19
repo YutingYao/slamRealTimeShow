@@ -148,6 +148,44 @@ def test_run_PotreeConverter_exe(file_name):
     return pts_out_src + '/cloud.js'
 
 
+# 根据文件路径，切割瓦片
+def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
+    # pts_src_name = MEDIA_ROOT + "/pointCloud/" + file_name
+    (only_file_name, ext) = os.path.splitext(original_file_name)
+    pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"
+    cmdstrxyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
+    test_path = 'http://192.168.1.46:8000/media/conver/' + only_file_name + "_conver/"
+    myPopenObj01 = subprocess.Popen(cmdstrxyz)
+    try:
+
+        wait02 = myPopenObj01.wait(timeout=86400)
+        if wait02 != 0:
+            # print("laz Potree Converter failure!")
+            # logger.error("laz Potree Converter failure!", src + " " + laz_src_name)
+            print("？？？？？？？？？？？wait02 != 0")
+            return None
+        # print("laz Potree Converter succeed!")
+        # logger.info("laz Potree Converter succeed!", src + " " + laz_src_name)
+        # (filepath, tempfilename) = os.path.split(list_src[0])
+        # cloud_js_path = os.path.join(filepath, "cloud.js").replace('\\', '/')
+        # print(cloud_js_path)
+        # if not os.path.exists(cloud_js_path):
+        #     return None
+
+        # TODO: 删除此路径之外的的文件（data，temp，cloud.js,sources.json）
+        # return cloud_js_path  test_path pts_out_src
+        return test_path + 'cloud.js'
+    except Exception as e:
+        print("？？？？？？？？？？？？===== process timeout 执行失败结束进程 ======")
+        # logger.error(repr(e), "===== process timeout 执行失败结束进程 ======", src + " " + laz_src_name)
+
+        myPopenObj01.kill()
+
+        # TODO: 清空文件夹
+        return None
+    return pts_out_src + '/cloud.js'
+
+
 # 读取文件夹，获取文件夹内所有文件信息
 def test_read_point_cloud_dir(max_id):
     # MEDIA_ROOT
@@ -227,7 +265,8 @@ def read_track(track_path):
     try:
         list_dir = os.listdir(track_path)
         if len(list_dir) > 0:
-            track_file = track_path + "/" + list_dir[0]
+            # track_file = track_path + "/" + list_dir[0]
+            track_file = track_path + "/" + "transformations.txt"
             read_string_list = open(track_file).read().splitlines()
             track_file_list = []
             for item in read_string_list:
@@ -242,6 +281,20 @@ def read_track(track_path):
         print('文件夹遍历出错', e)
         return None
     return track_file_list
+
+
+# 读取指定点云文件，存在返回True, 否则返回False
+def read_point_cloud_file(point_cloud_path):
+    try:
+        list_dir = os.isfile(point_cloud_path)
+        point_cloud_number = len(list_dir)
+        for item in list_dir:
+            pass
+
+    except Exception as e:
+        print('文件夹遍历出错', e)
+        return None
+    return point_cloud_number
 
 
 # 创建项目文件夹
