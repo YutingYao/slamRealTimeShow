@@ -463,8 +463,8 @@ def start_scan(request):
         sleep(1)
         os.mkdir(pts_src_path)
         os.mkdir(tile_src_path)
-        pointCloud = PointCloudChunk.objects.all()
-        pointCloud.delete()
+        point_cloud = PointCloudChunk.objects.all()
+        point_cloud.delete()
 
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=404)
@@ -486,9 +486,9 @@ def stop_scan(request):
         #     print('点云=>:', item)
         print('停止扫描，停止数据请求操作，修改变量')
     except PointCloudChunk.DoesNotExist:
-        return HttpResponse(status=404)
+        return HttpResponse(status=202)
 
-    return HttpResponse({"all_book2": "book"})
+    return HttpResponse(status=404)
 
 
 # step 2、点云瓦片切割，并存储瓦片url
@@ -496,17 +496,19 @@ def stop_scan(request):
 def add_point_cloud(request):
     """
     stop scan
-    路由： DELETE /scan_end/
+    路由： post /point_cloud/
     """
     try:
         track_path = MEDIA_ROOT + "/track/trackPoint.txt"
         json_bytes = request.body
         # json_str = json_bytes.decode()
         track_dict = json.loads(json_bytes)
+        # 轨迹点获取,从请求体中获取轨迹数据
         track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
                       str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
             track_dict['ep']) + ' ' + \
                       str(track_dict['ey']) + ' ' + str(track_dict['d'])
+        # print('当前估计点数据=>:', track_point)
         point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # 点云原始文件文件夹
         if os.path.isfile(point_cloud_path):
             # point_cloud_name = str(track_dict['id']) + ".pcd"

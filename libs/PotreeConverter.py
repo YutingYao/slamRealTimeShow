@@ -148,48 +148,34 @@ def test_run_PotreeConverter_exe(file_name):
     return pts_out_src + '/cloud.js'
 
 
-# 根据文件路径，切割瓦片
+# TODO:根据文件路径，切割瓦片
 def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
-    # pts_src_name = MEDIA_ROOT + "/pointCloud/" + file_name
     (only_file_name, ext) = os.path.splitext(original_file_name)
     pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"
-    cmdstrxyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
-    # test_path = 'http://192.168.1.46:8006/media/conver/' + only_file_name + "_conver/"
-    # test_path = 'http://192.168.1.46:80/api/media/conver/' + only_file_name + "_conver/"
-    test_path = '/api/media/conver/' + only_file_name + "_conver/"
-    myPopenObj01 = subprocess.Popen(cmdstrxyz)
+    cmd_cut_xyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
+    clouds_path = '/api/media/conver/' + only_file_name + "_conver/"
+    cut_process = subprocess.Popen(cmd_cut_xyz)
     # ubuntu 下面命令
     # cmdstrxyz = "/home/onrol/桌面/test/slamRealTimeShow/libs/linuxE57PotreeConverter/PotreeConverter " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
     # test_path = 'http://172.18.104.126:80/api/media/conver/' + only_file_name + "_conver/"
-    # myPopenObj01 = subprocess.Popen(cmdstrxyz, shell=True)
+    # clouds_path = '/api/media/conver/' + only_file_name + "_conver/"
+    # cut_process = subprocess.Popen(cmdstrxyz, shell=True)
     try:
 
-        wait02 = myPopenObj01.wait(timeout=86400)
+        wait02 = cut_process.wait(timeout=86400)
         if wait02 != 0:
-            # print("laz Potree Converter failure!")
-            # logger.error("laz Potree Converter failure!", src + " " + laz_src_name)
-            print("？？？？？？？？？？？wait02 != 0")
+            # print("？？？？？？？？？？？wait02 != 0")
             return None
-        # print("laz Potree Converter succeed!")
-        # logger.info("laz Potree Converter succeed!", src + " " + laz_src_name)
-        # (filepath, tempfilename) = os.path.split(list_src[0])
-        # cloud_js_path = os.path.join(filepath, "cloud.js").replace('\\', '/')
-        # print(cloud_js_path)
-        # if not os.path.exists(cloud_js_path):
-        #     return None
+        # 如果文件不存在，则切割失败 cloud_js_path = os.path.join(filepath, "cloud.js").replace('\\', '/')
+        if not os.path.exists(pts_out_src + '/cloud.js'):
+            print('文件切割失败')
+            return None
 
-        # TODO: 删除此路径之外的的文件（data，temp，cloud.js,sources.json）
-        # return cloud_js_path  test_path pts_out_src
-        return test_path + 'cloud.js'
     except Exception as e:
-        print("？？？？？？？？？？？？===== process timeout 执行失败结束进程 ======")
-        # logger.error(repr(e), "===== process timeout 执行失败结束进程 ======", src + " " + laz_src_name)
-
-        myPopenObj01.kill()
-
-        # TODO: 清空文件夹
+        # print("？？？？？？？？？？？？===== process timeout 执行失败结束进程 ======")
+        cut_process.kill()
         return None
-    return pts_out_src + '/cloud.js'
+    return clouds_path + '/cloud.js'  # clouds_path  pts_out_src + '/cloud.js'
 
 
 # 读取文件夹，获取文件夹内所有文件信息
