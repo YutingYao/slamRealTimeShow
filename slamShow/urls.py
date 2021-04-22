@@ -41,13 +41,13 @@ urlpatterns = [
     # url(r'^users/', include('users.urls')),
     url(r'^testPoint/', include((pointCloud.url, 'pointCloud'), namespace='pointCloud')),  # 添加应用的路由
     # url(r'^books/$', views.BooksAPIVIew.as_view()),
-    url(r'^pointCloudBlank/$', views.point_delete),
-    url(r'^books_all/$', views.point_get),
-    url(r'^pointClouds/(?P<pk>\d+)/$', views.PointAPIVIew.as_view()),
-    url(r'^startScan/$', views.start_scan),
-    url(r'^stopScan/$', views.stop_scan),
-    url(r'^point_cloud/$', views.add_point_cloud),
-    url(r'^point_cloud/(?P<pk>\d+)/$', views.get_point_cloud),
+    url(r'^api/pointCloudBlank/$', views.point_delete),
+    url(r'^api/books_all/$', views.point_get),
+    url(r'^api/pointClouds/(?P<pk>\d+)/$', views.PointAPIVIew.as_view()),
+    url(r'^api/startScan/$', views.start_scan),
+    url(r'^api/stopScan/$', views.stop_scan),
+    url(r'^api/point_cloud/$', views.add_point_cloud),
+    url(r'^api/point_cloud/(?P<pk>\d+)/$', views.get_point_cloud),
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static('api' + settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()  # 设置静态文件 部署到服务器静态文件不这样设置

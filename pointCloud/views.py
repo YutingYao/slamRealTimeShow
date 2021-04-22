@@ -515,19 +515,23 @@ def add_point_cloud(request):
             os.rename(point_cloud_path, point_cloud_repath)
             print('点云存在')
             cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)
-            pointCloudUrl = PointCloudChunk(
+            if cloud_url is None:  # 如果cloud_url 为 None 说明切割瓦片失败
+                os.rename(point_cloud_repath, point_cloud_path)  # 瓦片切割失败，将xyz重新修改为pcd
+                return HttpResponse(status=202)
+            point_cloud_url = PointCloudChunk(
                 cloud_project='点云项目',
                 cloud_name='点云名称',
                 cloud_url=cloud_url,
                 cloud_id=str(track_dict['id'])
             )
-            pointCloudUrl.save()
+            point_cloud_url.save()
             print('cloud_url=>:', cloud_url)
             # 点云存在,进行点云切割
 
         else:
             # 点云不存在，直接跳过操作
             print('点云不存在', point_cloud_path)
+            return HttpResponse(status=404)
         # 轨迹点追加
         with open(track_path, 'a+') as f:
             # json_str = json.dumps(dict, indent=0)
@@ -537,7 +541,7 @@ def add_point_cloud(request):
 
 
     except PointCloudChunk.DoesNotExist:
-        return HttpResponse(status=404)
+        return HttpResponse(status=202)
 
     return HttpResponse(status=201)
 

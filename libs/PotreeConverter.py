@@ -154,8 +154,14 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
     (only_file_name, ext) = os.path.splitext(original_file_name)
     pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"
     cmdstrxyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
-    test_path = 'http://192.168.1.46:8000/media/conver/' + only_file_name + "_conver/"
+    # test_path = 'http://192.168.1.46:8006/media/conver/' + only_file_name + "_conver/"
+    # test_path = 'http://192.168.1.46:80/api/media/conver/' + only_file_name + "_conver/"
+    test_path = '/api/media/conver/' + only_file_name + "_conver/"
     myPopenObj01 = subprocess.Popen(cmdstrxyz)
+    # ubuntu 下面命令
+    # cmdstrxyz = "/home/onrol/桌面/test/slamRealTimeShow/libs/linuxE57PotreeConverter/PotreeConverter " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
+    # test_path = 'http://172.18.104.126:80/api/media/conver/' + only_file_name + "_conver/"
+    # myPopenObj01 = subprocess.Popen(cmdstrxyz, shell=True)
     try:
 
         wait02 = myPopenObj01.wait(timeout=86400)
