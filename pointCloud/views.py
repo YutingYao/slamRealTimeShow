@@ -17,54 +17,54 @@ import shutil
 from time import sleep
 
 
-def index(request, city, year):
-    """
-    index视图
-    :param request: 包含了请求信息的请求对象
-    :return: 响应对象
-    """
-    # TODO: 获取url中值
-    # print('city=%s' % city)
-    # print('year=%s' % year)
-    """
-        获取请求参数request
-    """
-    a = request.GET.get('a')
-    b = request.GET.get('b')
-    alist = request.GET.getlist('a')
-    print(a)  # 3
-    print(b)  # 2
-    print(alist)  # ['1', '3']
-    # url = reverse('pointCloud:index')  # 返回 /users/index/
-    # print('打印reverse url=>:', url)
-    return HttpResponse("hello the world!")
+# def index(request, city, year):
+#     """
+#     index视图
+#     :param request: 包含了请求信息的请求对象
+#     :return: 响应对象
+#     """
+#     # TODO: 获取url中值
+#     # print('city=%s' % city)
+#     # print('year=%s' % year)
+#     """
+#         获取请求参数request
+#     """
+#     a = request.GET.get('a')
+#     b = request.GET.get('b')
+#     alist = request.GET.getlist('a')
+#     print(a)  # 3
+#     print(b)  # 2
+#     print(alist)  # ['1', '3']
+#     # url = reverse('pointCloud:index')  # 返回 /users/index/
+#     # print('打印reverse url=>:', url)
+#     return HttpResponse("hello the world!")
 
 
-@csrf_exempt
-def get_post(request):
-    a = request.POST.get('a')
-    b = request.POST.get('b')
-    alist = request.POST.getlist('a')
-    print(a)
-    print(b)
-    print(alist)
-    return HttpResponse('OK')
+# @csrf_exempt
+# def get_post(request):
+#     a = request.POST.get('a')
+#     b = request.POST.get('b')
+#     alist = request.POST.getlist('a')
+#     print(a)
+#     print(b)
+#     print(alist)
+#     return HttpResponse('OK')
 
 
-@csrf_exempt
-def get_body_json(request):
-    # print(request.META)
-    print(request.method)
-    print(request.user)
-    print(request.path)
-    print(request.encoding)
-    print(request.FILES)
-    json_str = request.body
-    # json_str = json_str.decode()  # python3.6 无需执行此步 method
-    req_data = json.loads(json_str)
-    # print(req_data['a'])
-    # print(req_data['b'])
-    return HttpResponse('OK')
+# @csrf_exempt
+# def get_body_json(request):
+#     # print(request.META)
+#     print(request.method)
+#     print(request.user)
+#     print(request.path)
+#     print(request.encoding)
+#     print(request.FILES)
+#     json_str = request.body
+#     # json_str = json_str.decode()  # python3.6 无需执行此步 method
+#     req_data = json.loads(json_str)
+#     # print(req_data['a'])
+#     # print(req_data['b'])
+#     return HttpResponse('OK')
 
 
 # def test_get_queryset(pk, point_cloud_number, conver_number):
@@ -425,21 +425,21 @@ class PointCloudAPIView(View):
         return HttpResponse(status=204)
 
 
-@csrf_exempt
-def point_get(request):
-    """
-    删除图书
-    路由： DELETE /books/<pk>/
-    """
-    try:
-        point_list = PointCloudChunk.objects.all()
-        # print("book")
-        # for item in point_list:
-        #     print('点云=>:', item)
-    except PointCloudChunk.DoesNotExist:
-        return HttpResponse(status=404)
-
-    return HttpResponse({"all_book2": "book"})
+# @csrf_exempt
+# def point_get(request):
+#     """
+#     删除图书
+#     路由： DELETE /books/<pk>/
+#     """
+#     try:
+#         point_list = PointCloudChunk.objects.all()
+#         # print("book")
+#         # for item in point_list:
+#         #     print('点云=>:', item)
+#     except PointCloudChunk.DoesNotExist:
+#         return HttpResponse(status=404)
+#
+#     return HttpResponse({"all_book2": "book"})
 
 
 # TODO: 下面是所有接口
@@ -451,25 +451,24 @@ def start_scan(request):
     路由： get /scan_init/
     """
     try:
-        # point_list = PointCloudChunk.objects.all()
-        # print("book")
-        # for item in point_list:
-        #     print('点云=>:', item)
         print('开始扫描，进行扫描初始化')
-        pts_src_path = MEDIA_ROOT + "/pointCloud"
-        tile_src_path = MEDIA_ROOT + "/conver"
-        shutil.rmtree(pts_src_path)
-        shutil.rmtree(tile_src_path)
-        sleep(1)
-        os.mkdir(pts_src_path)
-        os.mkdir(tile_src_path)
+        pcd_path = MEDIA_ROOT + "/pointCloud"
+        tile_path = MEDIA_ROOT + "/conver"
+        track_path = MEDIA_ROOT + "/track/transformations.txt"
+        shutil.rmtree(pcd_path)
+        shutil.rmtree(tile_path)
+        # with open(track_path, 'a+', encoding='utf-8') as f:
+        #     f.truncate(0)
+        # sleep(1)
+        os.mkdir(pcd_path)
+        os.mkdir(tile_path)
         point_cloud = PointCloudChunk.objects.all()
         point_cloud.delete()
 
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=404)
 
-    return HttpResponse({"all_book2": "book"})
+    return HttpResponse(status=200)
 
 
 # step 4、接受停止扫描状态
@@ -510,7 +509,7 @@ def add_point_cloud(request):
                       str(track_dict['ey']) + ' ' + str(track_dict['d'])
         # print('当前估计点数据=>:', track_point)
         point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # 点云原始文件文件夹
-        if os.path.isfile(point_cloud_path):
+        if os.path.isfile(point_cloud_path):  # 正式版本需要判断xyz后缀文件
             # point_cloud_name = str(track_dict['id']) + ".pcd"
             point_cloud_rename = str(track_dict['id']) + ".xyz"
             point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # 点云原始文件文件夹

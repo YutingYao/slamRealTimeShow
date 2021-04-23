@@ -253,6 +253,7 @@ def read_point_cloud_dir(point_cloud_path):
     return point_cloud_number
 
 
+# TODO: 读取轨迹文件返回轨迹数据
 def read_track(track_path):
     try:
         list_dir = os.listdir(track_path)
