@@ -50,8 +50,8 @@ class ThreadPool(object):
         return data
 
     def __del__(self):
-        # pass
-        self.executor.shutdown()
+        # pass self.executor.shutdown()
+        self.executor.shutdown
 
     # 主线程中的全局线程池
     # global_thread_pool的生命周期是Django主线程运行的生命周期
