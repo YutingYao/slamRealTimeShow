@@ -48,6 +48,7 @@ urlpatterns = [
     url(r'^api/stopScan/$', views.stop_scan),
     url(r'^api/point_cloud/$', views.add_point_cloud),
     url(r'^api/point_cloud/(?P<pk>\d+)/$', views.get_point_cloud),
+    url(r'^api/single_point_cloud/(?P<pk>\d+)/$', views.get_single_point_cloud),
 ]
 urlpatterns += static('api' + settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()  # 设置静态文件 部署到服务器静态文件不这样设置

@@ -5,10 +5,11 @@ import multiprocessing
 from PIL import Image
 import os
 import math
+import subprocess
 
 from django.utils.autoreload import logger
 
-from ShareCloudServer.settings import global_process_pool
+from slamShow.settings import global_process_pool
 
 import logging
 
@@ -234,7 +235,7 @@ class MapGenerator():
         prior = t[8]
         # dim1 = self.map.zMapDimensions[tile[1]][prior]
         # dim2 = self.map.zMapDimensions[tile[1]][prior - 1]
-        MapGenerator.makeFolderGen(t[7],str(tile[1]))  # 创建文件夹
+        MapGenerator.makeFolderGen(t[7], str(tile[1]))  # 创建文件夹
         # tileMap = self.map.image.resize((dim1, dim2), Image.ANTIALIAS)
         tileMap = Image.open(pathMap)
         tileCroped = tileMap.crop(cropZone)
@@ -309,8 +310,80 @@ def generate_map_tiles_thread(src):
         # global_process_pool.lock.release()  # TODO: 释放锁
 
 
+def move_file_test(src):
+    # print(src) source_path, target_path
+    print("开始移动文件")
+    # cmdstr = r"move " + source_path + " " + target_path /y
+    cmdstr = r"move /y " + src
+    print(cmdstr)
+
+    # print(str(cmdstr))
+    # "PotreeConverter.exe pumpACartesian.laz -o pumpACartesianOut --overwrite"
+    myPopenObj01 = subprocess.Popen(cmdstr, shell=True)
+    print('myPopenObj01=>:', myPopenObj01)
+    try:
+
+        wait02 = myPopenObj01.wait(timeout=3000)
+        print('wait02=>:', wait02)
+        if wait02 != 0:
+            print("move file failure!", src + " " + laz_src_name)
+
+            # return None
+        print("move file succeed!", src + " " + laz_src_name)
+        # if not os.path.exists(cloud_js_path):
+        #     return None
+
+        # TODO: 删除此路径之外的的文件（data，temp，cloud.js,sources.json）
+    except Exception as e:
+        print("===== process timeout 执行失败结束进程 ======")
+        # logger.error(repr(e), "===== process timeout 执行失败结束进程 ======", src + " " + laz_src_name)
+
+        myPopenObj01.kill()
+
+
+# TODO：移动文件到新文件路径,如果路径已存在则删除路径，重新创建，并移动文件 srcfile, dstfile
+def mymovefile(srcfile, dstfile):
+    """
+    移动文件的方法
+    :param srcfile:     这个是要移动的文件路径
+    :param dstfile:     这是移动到的目标文件路径
+    :return:  dst       移动操作成功 则 返回移动到的文件路径
+    """
+    """
+
+    :return: True       返回 True 移动成功
+    """
+
+    # 先先判断 要移动的文件路径是否存在
+    print("开始移动")
+    if not os.path.isfile(srcfile):
+        print("%s 不存在!" % (srcfile))
+    else:
+        fpath, fname = os.path.split(dstfile)  # 分离文件名和路径
+        dst = None
+        # TODO:判断 目标文件的路径是否存在  如果不存在 就创建一个
+        if not os.path.exists(fpath):
+            print("路径不存在")
+            os.makedirs(fpath)  # 创建路径
+
+            # print(srcfile, dstfile, "文件夹")
+            dst = shutil.move(srcfile, dstfile)  # 移动文件
+        # print("move %s -> %s" % (srcfile, dstfile))
+        # TODO: 如果文件夹存在
+        else:
+            # shutil.rmtree(fpath)  # 删除文件夹
+            print("路径存在")
+            if os.path.exists(dstfile):
+                os.remove(dstfile)
+                logger.info("os.remove(dstfile) old:", dstfile)
+            # os.makedirs(fpath)  # 创建路径
+            dst = shutil.move(srcfile, dstfile)  # 移动文件
+        return dst
+
+
+
 if __name__ == '__main__':
-    generate_map_tiles_thread( r"C:\Users\Administrator\Pictures\恐龙.jpg")
+    generate_map_tiles_thread(r"C:\Users\Administrator\Pictures\恐龙.jpg")
     print('aa')
     # mapTile = Map(
     #     # "E:/模型/长信宫灯/DENGZHAO2.png",

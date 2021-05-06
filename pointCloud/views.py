@@ -15,7 +15,9 @@ from slamShow.settings import MEDIA_ROOT
 import json
 import shutil
 from time import sleep
+from libs.GeneratorMap import move_file_test, mymovefile
 
+from concurrent.futures import ProcessPoolExecutor
 
 # def index(request, city, year):
 #     """
@@ -484,10 +486,21 @@ def stop_scan(request):
         # for item in point_list:
         #     print('点云=>:', item)
         print('停止扫描，停止数据请求操作，修改变量')
+        pool = ProcessPoolExecutor(3)
+        sources_file = "D:/test/test_move/abc.zip"
+        target_file = "D:/test/test_move_2/abc.zip"
+        index_last = target_file.rfind('/')  # 返回最右边（最后一次）的字符位置
+        test_target_file = target_file[0:index_last]
+        print('index_last=>:', index_last, test_target_file)
+        # all_path = "D:\\test\\test_move\\abc1.zip D:/test/test_move_2/abc1.zip"
+        # future = pool.submit(move_file_test, (sources_file, target_file))
+        # future = pool.submit(mymovefile, (sources_file, target_file))
+        # move_file_test(all_path)
+
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=202)
 
-    return HttpResponse(status=404)
+    return HttpResponse(status=200)
 
 
 # step 2、点云瓦片切割，并存储瓦片url
@@ -552,10 +565,16 @@ def add_point_cloud(request):
 def get_point_cloud(request, pk):
     track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
     current_id = int(pk)
-    queryset2 = PointCloudChunk.objects.all()
+    # if request == current_id:
+    # queryset2 = None  # PointCloudChunk.objects.all()
+    if current_id == 999999:
+        queryset2 = PointCloudChunk.objects.filter(cloud_id_lt=10)
+    else:
+        max_cloud_id = current_id + 9
+        queryset2 = PointCloudChunk.objects.filter(cloud_id_gte=current_id, cloud_id_lt=max_cloud_id)
     point_list = []
     for point_cloud_item in queryset2:
-        if current_id != 99999:  # 判断是否是初次请求或者刷新页面后的请求
+        if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求
             if point_cloud_item.cloud_id > current_id:
                 point_list.append({
                     'cloud_id': point_cloud_item.cloud_id,
@@ -606,3 +625,52 @@ def point_delete(request):
     book.delete()
 
     return HttpResponse(status=204)
+
+# step 3、获取瓦片url
+@csrf_exempt
+def get_single_point_cloud(request, pk):
+    track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
+    current_id = int(pk)
+    # if request == current_id:
+    # queryset2 = None  # PointCloudChunk.objects.all()
+    if current_id == 999999:
+        queryset2 = PointCloudChunk.objects.filter(cloud_id=0)
+    else:
+        # max_cloud_id = current_id + 9
+        queryset2 = PointCloudChunk.objects.filter(cloud_id=pk)
+    point_list = []
+    for point_cloud_item in queryset2:
+        if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求
+            if point_cloud_item.cloud_id >= current_id:
+                point_list.append({
+                    'cloud_id': point_cloud_item.cloud_id,
+                    'cloud_name': point_cloud_item.cloud_name,
+                    'cloud_url': point_cloud_item.cloud_url,
+                    'cloud_project': point_cloud_item.cloud_project,
+                })
+        else:
+            point_list.append({
+                'cloud_id': point_cloud_item.cloud_id,
+                'cloud_name': point_cloud_item.cloud_name,
+                'cloud_url': point_cloud_item.cloud_url,
+                'cloud_project': point_cloud_item.cloud_project,
+            })
+
+    if point_list:  # 需要返回点云
+        point_list_length = len(point_list)
+        track_data = read_track(track_path)  # 读取轨迹数据
+        # if current_id != 99999:
+        #     valid_track_data = track_data[:point_list_length]
+        # else:
+        #     valid_track_data = track_data[:point_list_length]
+        test_list_point = {
+            "track": track_data,
+            "point": point_list,
+            "message": True
+        }
+        return JsonResponse(test_list_point, safe=False)
+    else:  # 不需要返回点云数据
+        message_info = {
+            "message": False
+        }
+        return JsonResponse(message_info, safe=False)
