@@ -57,3 +57,28 @@ class Track(models.Model):
     # 重载__str__方法使后台不再直接显示object
     def __str__(self):
         return self.cloud_name
+
+
+# 点云轨迹回环点索引
+class CirclePoint2(models.Model):
+    """
+    存储每一帧点云数据
+    """
+    # table_name = models.CharField(max_length=35, null=True, blank=True, verbose_name=u"帧点云数据表名")
+    circle_point_id = models.IntegerField(default=0, verbose_name=u"回环点id")
+    # circle_point_start = models.IntegerField(default=0, verbose_name=u"开始回环点")
+    # circle_point_end = models.IntegerField(default=0, verbose_name=u"结束回环点")
+    circle_point_start = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"开始回环点")
+    circle_point_end = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"结束回环点")
+
+    # cloud_url = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"轨迹数据")
+    # cloud_project = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"轨迹属于项目")
+
+    class Meta:
+        db_table = 'tb_circle_point2'
+        verbose_name = u"回环点"
+        verbose_name_plural = verbose_name
+
+    # 重载__str__方法使后台不再直接显示object
+    def __str__(self):
+        return self.circle_point_id

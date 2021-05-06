@@ -19,6 +19,7 @@ from libs.GeneratorMap import move_file_test, mymovefile
 
 from concurrent.futures import ProcessPoolExecutor
 
+
 # def index(request, city, year):
 #     """
 #     index视图
@@ -626,7 +627,8 @@ def point_delete(request):
 
     return HttpResponse(status=204)
 
-# step 3、获取瓦片url
+
+# 测试获取单个瓦片url
 @csrf_exempt
 def get_single_point_cloud(request, pk):
     track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
@@ -674,3 +676,9 @@ def get_single_point_cloud(request, pk):
             "message": False
         }
         return JsonResponse(message_info, safe=False)
+
+
+# step 4、添加回环点
+@csrf_exempt
+def add_circle_point():
+    pass
