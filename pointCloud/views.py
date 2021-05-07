@@ -10,7 +10,7 @@ from datetime import datetime
 
 from libs.PotreeConverter import test_read_point_cloud_dir, test_run_PotreeConverter_exe, read_conver_dir, \
     read_point_cloud_dir, read_track, read_point_cloud_file, run_PotreeConverter_exe_tile
-from pointCloud.models import BookInfo, PointCloudChunk
+from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint
 from slamShow.settings import MEDIA_ROOT
 import json
 import shutil
@@ -467,6 +467,9 @@ def start_scan(request):
         os.mkdir(tile_path)
         point_cloud = PointCloudChunk.objects.all()
         point_cloud.delete()
+        # 删除回环点数据
+        circle_point = CirclePoint.objects.all()
+        circle_point.delete()
 
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=404)
@@ -567,14 +570,15 @@ def get_point_cloud(request, pk):
     track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
     current_id = int(pk)
     # if request == current_id:
-    # queryset2 = None  # PointCloudChunk.objects.all()
     if current_id == 999999:
-        queryset2 = PointCloudChunk.objects.filter(cloud_id_lt=10)
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id_lt=10)
+        CirclePointQueryset = PointCloudChunk.objects.filter(circle_point_id_lt=10)
     else:
         max_cloud_id = current_id + 9
-        queryset2 = PointCloudChunk.objects.filter(cloud_id_gte=current_id, cloud_id_lt=max_cloud_id)
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id_gte=current_id, cloud_id_lt=max_cloud_id)
+        CirclePointQueryset = PointCloudChunk.objects.filter(circle_point_id_gte=current_id, circle_point_id_lt=max_cloud_id)
     point_list = []
-    for point_cloud_item in queryset2:
+    for point_cloud_item in PointCloudQueryset:
         if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求
             if point_cloud_item.cloud_id > current_id:
                 point_list.append({
@@ -590,7 +594,14 @@ def get_point_cloud(request, pk):
                 'cloud_url': point_cloud_item.cloud_url,
                 'cloud_project': point_cloud_item.cloud_project,
             })
-
+    circle_point_list = []
+    for item in CirclePointQueryset:
+        print('打印数据集item=>:', item.id)
+        circle_point_item = {
+            'start_index': item.circle_point_start,
+            'end_index': item.circle_point_end,
+        }
+        circle_point_list.append(circle_point_item)
     if point_list:  # 需要返回点云
         point_list_length = len(point_list)
         track_data = read_track(track_path)  # 读取轨迹数据
@@ -601,6 +612,7 @@ def get_point_cloud(request, pk):
         test_list_point = {
             "track": track_data,
             "point": point_list,
+            "circle_point": circle_point_list,
             "message": True
         }
         return JsonResponse(test_list_point, safe=False)
@@ -680,5 +692,37 @@ def get_single_point_cloud(request, pk):
 
 # step 4、添加回环点
 @csrf_exempt
-def add_circle_point():
-    pass
+def add_circle_point(request):
+    """
+    add circle point
+    路由： post /circle_point/
+    """
+    try:
+        json_bytes = request.body
+        # json_str = json_bytes.decode()
+        circle_point_dict = json.loads(json_bytes)
+        # print('打印回环点字典=>:', circle_point_dict)
+        # 写入回环点数据
+        for circle_point_item in circle_point_dict['circle_point']:
+            # print('打印回环点item=>:', circle_point_item)
+            circle_point_item_data = CirclePoint(
+                circle_point_start=int(circle_point_item['start_track_index']),
+                circle_point_end=int(circle_point_item['end_track_index']),
+            )
+            circle_point_item_data.save()
+        # 查询所有回环点数据
+        # queryset2 = CirclePoint.objects.all()
+        # circle_point_list = []
+        # for item in queryset2:
+        #     print('打印数据集item=>:', item.id)
+        #     circle_point_item = {
+        #         'start_index': item.circle_point_start,
+        #         'end_index': item.circle_point_end,
+        #     }
+        #     circle_point_list.append(circle_point_item)
+
+
+    except PointCloudChunk.DoesNotExist:
+        return HttpResponse(status=202)
+    # circle_point_list,
+    return HttpResponse(status=201)

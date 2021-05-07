@@ -60,7 +60,7 @@ class Track(models.Model):
 
 
 # 点云轨迹回环点索引
-class CirclePoint2(models.Model):
+class CirclePoint(models.Model):
     """
     存储每一帧点云数据
     """
@@ -68,14 +68,14 @@ class CirclePoint2(models.Model):
     circle_point_id = models.IntegerField(default=0, verbose_name=u"回环点id")
     # circle_point_start = models.IntegerField(default=0, verbose_name=u"开始回环点")
     # circle_point_end = models.IntegerField(default=0, verbose_name=u"结束回环点")
-    circle_point_start = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"开始回环点")
-    circle_point_end = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"结束回环点")
+    circle_point_start = models.IntegerField(default=0, null=True, blank=True, verbose_name=u"开始回环点")
+    circle_point_end = models.IntegerField(default=0, null=True, blank=True, verbose_name=u"结束回环点")
 
     # cloud_url = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"轨迹数据")
     # cloud_project = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"轨迹属于项目")
 
     class Meta:
-        db_table = 'tb_circle_point2'
+        db_table = 'tb_circle_point'
         verbose_name = u"回环点"
         verbose_name_plural = verbose_name
 
