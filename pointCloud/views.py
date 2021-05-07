@@ -571,12 +571,12 @@ def get_point_cloud(request, pk):
     current_id = int(pk)
     # if request == current_id:
     if current_id == 999999:
-        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id_lt=10)
-        CirclePointQueryset = PointCloudChunk.objects.filter(circle_point_id_lt=10)
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10)
+        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__lt=10)
     else:
         max_cloud_id = current_id + 9
-        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id_gte=current_id, cloud_id_lt=max_cloud_id)
-        CirclePointQueryset = PointCloudChunk.objects.filter(circle_point_id_gte=current_id, circle_point_id_lt=max_cloud_id)
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id)
+        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id, circle_point_end__lt=max_cloud_id)
     point_list = []
     for point_cloud_item in PointCloudQueryset:
         if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求
