@@ -153,7 +153,7 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
     (only_file_name, ext) = os.path.splitext(original_file_name)
     pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"
     cmd_cut_xyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
-    clouds_path = '/api/media/conver/' + only_file_name + "_conver/"
+    clouds_path = '/media/conver/' + only_file_name + "_conver/"
     cut_process = subprocess.Popen(cmd_cut_xyz)
     # ubuntu 下面命令
     # cmdstrxyz = "/home/onrol/桌面/test/slamRealTimeShow/libs/linuxE57PotreeConverter/PotreeConverter " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
@@ -175,7 +175,7 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
         # print("？？？？？？？？？？？？===== process timeout 执行失败结束进程 ======")
         cut_process.kill()
         return None
-    return clouds_path + '/cloud.js'  # clouds_path  pts_out_src + '/cloud.js'
+    return clouds_path + 'cloud.js'  # clouds_path  pts_out_src + '/cloud.js'
 
 
 # 读取文件夹，获取文件夹内所有文件信息
