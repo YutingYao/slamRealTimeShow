@@ -10,7 +10,8 @@ from datetime import datetime
 
 from libs.PotreeConverter import test_read_point_cloud_dir, test_run_PotreeConverter_exe, read_conver_dir, \
     read_point_cloud_dir, read_track, read_point_cloud_file, run_PotreeConverter_exe_tile
-from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint
+from libs.globleConfig import CURRENT_PROJECT
+from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint, Project
 from slamShow.settings import MEDIA_ROOT
 import json
 import shutil
@@ -444,6 +445,36 @@ class PointCloudAPIView(View):
 #
 #     return HttpResponse({"all_book2": "book"})
 
+# TODO: modify current scan save data folder---add scan project
+@csrf_exempt
+def scan_project(request):
+    json_bytes = request.body
+    # json_str = json_bytes.decode()
+    track_dict = json.loads(json_bytes)
+    # write to database
+    project_add = Project(
+        name=track_dict['name'],
+    )
+    project_add.save()
+    all_project = Project.objects.all()
+    for item in all_project:
+        print(item)
+    return HttpResponse(status=201)
+
+
+# TODO: get all project info
+@csrf_exempt
+def get_project(request):
+    all_project = Project.objects.all()
+    project_list = []
+    for item in all_project:
+        item_dict = {
+            'id': item.id,
+            'name': item.name,
+            'add_time': item.add_time
+        }
+        project_list.append(item_dict)
+    return HttpResponse(project_list)
 
 # TODO: 下面是所有接口
 # step 1、接受开始扫描状态
@@ -515,6 +546,7 @@ def add_point_cloud(request):
     路由： post /point_cloud/
     """
     try:
+        ProjectQueryset = Project.objects.filter(id=CURRENT_PROJECT['project_id'])
         track_path = MEDIA_ROOT + "/track/trackPoint.txt"
         json_bytes = request.body
         # json_str = json_bytes.decode()
@@ -531,16 +563,16 @@ def add_point_cloud(request):
             point_cloud_rename = str(track_dict['id']) + ".xyz"
             point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # 点云原始文件文件夹
             os.rename(point_cloud_path, point_cloud_repath)
-            print('点云存在')
             cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)
             if cloud_url is None:  # 如果cloud_url 为 None 说明切割瓦片失败
-                os.rename(point_cloud_repath, point_cloud_path)  # 瓦片切割失败，将xyz重新修改为pcd
+                os.rename(point_cloud_repath, point_cloud_path)  # 瓦片切割失败，将xyz重新修改为pcd ProjectQueryset[0]
                 return HttpResponse(status=202)
             point_cloud_url = PointCloudChunk(
                 cloud_project='点云项目',
                 cloud_name='点云名称',
                 cloud_url=cloud_url,
-                cloud_id=str(track_dict['id'])
+                cloud_id=str(track_dict['id']),
+                project_id=CURRENT_PROJECT['project_id']
             )
             point_cloud_url.save()
             print('cloud_url=>:', cloud_url)
@@ -571,21 +603,32 @@ def get_point_cloud(request, pk):
     current_id = int(pk)
     # if request == current_id:
     if current_id == 999999:
-        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10)
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10, project_id=CURRENT_PROJECT.project_id)
         CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__lt=10)
+        # ProjectQueryset = Project.objects.filter(id=CURRENT_PROJECT.id)
     else:
         max_cloud_id = current_id + 9
-        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id)
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id,
+                                                            project_id=CURRENT_PROJECT['project_id'])
         CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id, circle_point_end__lt=max_cloud_id)
     point_list = []
     for point_cloud_item in PointCloudQueryset:
-        if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求
+        if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求 point_cloud_item.project_id
+            # print(point_cloud_item)
+            # if point_cloud_item.project_id:
+            #     project_info = {
+            #             'id': point_cloud_item.project_id.id,
+            #             'name': point_cloud_item.project_id.name,
+            #         }
+            # else:
+            #     project_info = None
             if point_cloud_item.cloud_id > current_id:
                 point_list.append({
                     'cloud_id': point_cloud_item.cloud_id,
                     'cloud_name': point_cloud_item.cloud_name,
                     'cloud_url': point_cloud_item.cloud_url,
                     'cloud_project': point_cloud_item.cloud_project,
+                    'project': point_cloud_item.project_id
                 })
         else:
             point_list.append({
@@ -593,6 +636,7 @@ def get_point_cloud(request, pk):
                 'cloud_name': point_cloud_item.cloud_name,
                 'cloud_url': point_cloud_item.cloud_url,
                 'cloud_project': point_cloud_item.cloud_project,
+                'project': point_cloud_item.project_id
             })
     circle_point_list = []
     for item in CirclePointQueryset:
@@ -622,6 +666,58 @@ def get_point_cloud(request, pk):
         }
         return JsonResponse(message_info, safe=False)
 
+# step 4、获取所有瓦片url
+@csrf_exempt
+def get_all_point_cloud(request, pk):
+    track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
+    current_id = int(pk)
+    # if request == current_id:
+    if current_id == 999999:
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=100)
+        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__lt=100)
+    else:
+        max_cloud_id = current_id + 99
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id)
+        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id, circle_point_end__lt=max_cloud_id)
+    point_list = []
+    for point_cloud_item in PointCloudQueryset:
+        if point_cloud_item.cloud_id % 10 == 0 & point_cloud_item.cloud_id > current_id:
+            point_list.append({
+                'cloud_id': point_cloud_item.cloud_id,
+                'cloud_name': point_cloud_item.cloud_name,
+                'cloud_url': point_cloud_item.cloud_url,
+                'cloud_project': point_cloud_item.cloud_project,
+            })
+    circle_point_list = []
+    for item in CirclePointQueryset:
+        print('打印数据集item=>:', item.id)
+        circle_point_item = {
+            'start_index': item.circle_point_start,
+            'end_index': item.circle_point_end,
+        }
+        circle_point_list.append(circle_point_item)
+    if point_list:  # 需要返回点云
+        point_list_length = len(point_list)
+        if current_id == 999999:
+            track_data = read_track(track_path)  # 读取轨迹数据
+        else:
+            track_data = []
+        # if current_id != 99999:
+        #     valid_track_data = track_data[:point_list_length]
+        # else:
+        #     valid_track_data = track_data[:point_list_length]
+        test_list_point = {
+            "track": track_data,
+            "point": point_list,
+            "circle_point": circle_point_list,
+            "message": True
+        }
+        return JsonResponse(test_list_point, safe=False)
+    else:  # 不需要返回点云数据
+        message_info = {
+            "message": False
+        }
+        return JsonResponse(message_info, safe=False)
 
 # 清除数据库所有数据--正式版本不需要此功能，直接在开始扫描状态接口中清空数据库
 @csrf_exempt

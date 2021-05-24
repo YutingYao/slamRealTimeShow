@@ -42,7 +42,9 @@ urlpatterns = [
     # url(r'^testPoint/', include((pointCloud.url, 'pointCloud'), namespace='pointCloud')),  # 添加应用的路由
     # url(r'^books/$', views.BooksAPIVIew.as_view()),
     url(r'^api/pointCloudBlank/$', views.point_delete),
-    # url(r'^api/books_all/$', views.point_get),
+    # url(r'^api/books_all/$', views.point_get),point_cloud
+    url(r'^api/project/$', views.scan_project),
+    url(r'^api/projects/$', views.get_project),
     url(r'^api/pointClouds/(?P<pk>\d+)/$', views.PointAPIVIew.as_view()),
     url(r'^api/startScan/$', views.start_scan),
     url(r'^api/stopScan/$', views.stop_scan),
