@@ -486,10 +486,25 @@ def create_project(request):
 @csrf_exempt
 def delete_project(request, pk):
     # delete_info = Project.objects.filter(id=pk).delete()
+    int_pk = int(pk)
     delete_info = Project.objects.get(id=pk)
     delete_info.active = False
     delete_info.save()
     # 查看是否为当前扫描项目，如果是，则修改配置参数
+    print(pk, type(pk), CURRENT_PROJECT['project_id'], type(CURRENT_PROJECT['project_id']), pk == CURRENT_PROJECT['project_id'])
+    if int_pk == CURRENT_PROJECT['project_id']:
+        CURRENT_PROJECT['project_id'] = -1
+        CURRENT_PROJECT['status'] = 'notStart'
+        CURRENT_PROJECT['project_name'] = ''
+        CURRENT_PROJECT['tile_name'] = ''
+        CURRENT_PROJECT['point_cloud_path'] = ''
+    # 删除项目对象瓦片数据和数据库数据
+    print(CURRENT_PROJECT)
+    tile_path = MEDIA_ROOT + '/tile/' + delete_info.tile_name
+    if os.path.exists(tile_path):
+        shutil.rmtree(tile_path)  # TODO: 删除瓦片文件夹数据
+    point_cloud = PointCloudChunk.objects.filter(project_id=delete_info.id)
+    point_cloud.delete()
     delete_info = Project.objects.filter(id=pk)
     delete_project_data = {}
     for item in delete_info:
@@ -746,7 +761,7 @@ def get_point_cloud(request, project_id):
                     'cloud_name': point_cloud_item.cloud_name,
                     'cloud_url': point_cloud_item.cloud_url,
                     'cloud_project': point_cloud_item.cloud_project,
-                    'project': point_cloud_item.project_id
+                    'project': point_cloud_item.project_id,
                 })
         else:
             point_list.append({

@@ -1,6 +1,6 @@
 from slamShow.settings import BASE_DIR, MEDIA_ROOT
 
-SOURCE_POINT_CLOUD_PATH = 'D:/slamPointCloudShow/GOSLAMtemp/'  # TODO: why ?
+SOURCE_POINT_CLOUD_PATH = 'D:/slamPointCloudShow/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
 TRACT_PATH = 'D:/slamPointCloudShow/GOSLAMtemp/trackPoint.txt'  # TODO: track point file path
 PLATFORM_INFO = {
     'system': 'Windows',
@@ -8,7 +8,7 @@ PLATFORM_INFO = {
 }
 CURRENT_PROJECT = {
     'project_name': '',  # 项目名称
-    'project_id': -1,  # -1 表示没有保存瓦片文件夹和没有扫描项目
+    'project_id': 39,  # -1 表示没有保存瓦片文件夹和没有扫描项目
     'pre_project_id': None,
     'status': 'notStart',  # 扫描状态
     'tile_path': '',  # 瓦片存放路径
