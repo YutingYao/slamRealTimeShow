@@ -14,6 +14,7 @@ from libs.globleConfig import CURRENT_PROJECT
 from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint, Project
 from slamShow.settings import MEDIA_ROOT
 import json
+import time
 import shutil
 from time import sleep
 from libs.GeneratorMap import move_file_test, mymovefile
@@ -445,27 +446,109 @@ class PointCloudAPIView(View):
 #
 #     return HttpResponse({"all_book2": "book"})
 
-# TODO: modify current scan save data folder---add scan project
+# TODO: add scan project and return create scan project info, include project id
 @csrf_exempt
-def scan_project(request):
+def create_project(request):
     json_bytes = request.body
     # json_str = json_bytes.decode()
-    track_dict = json.loads(json_bytes)
+    project_dict = json.loads(json_bytes)
+    # 创建点云碎片文件夹
+    tile_name = 'conver' + time.strftime("%Y%m%d%H%M%S", time.localtime())
+    tile_path = MEDIA_ROOT + '/tile/' + tile_name
+    os.mkdir(tile_path)
     # write to database
     project_add = Project(
-        name=track_dict['name'],
+        project_name=project_dict['name'],
+        tile_name=tile_name,
     )
     project_add.save()
-    all_project = Project.objects.all()
-    for item in all_project:
-        print(item)
-    return HttpResponse(status=201)
+    max_id = Project.objects.all().aggregate(Max('id'))['id__max']
+    maxProjectQueryset = Project.objects.filter(id=max_id)
+    create_project_data = {}
+    for item in maxProjectQueryset:
+        create_project_data = {
+            'project_name': item.project_name,
+            'tile_name': item.tile_name,
+            'id': item.id,
+            'active': item.active,
+            'add_time': item.add_time
+        }
+
+    return JsonResponse(create_project_data, status=201, safe=False)
+
+
+# TODO: modify project active status
+@csrf_exempt
+def delete_project(request, pk):
+    # delete_info = Project.objects.filter(id=pk).delete()
+    delete_info = Project.objects.get(id=pk)
+    delete_info.active = False
+    delete_info.save()
+    delete_info = Project.objects.filter(id=pk)
+    # print(delete_info)
+    # json_bytes = request.body
+    # # json_str = json_bytes.decode()
+    # project_dict = json.loads(json_bytes)
+    # 创建点云碎片文件夹
+    # tile_name = 'conver' + time.strftime("%Y%m%d%H%M%S", time.localtime())
+    # tile_path = MEDIA_ROOT + '/tile/' + tile_name
+    # os.mkdir(tile_path)
+    # # write to database
+    # project_add = Project(
+    #     project_name=project_dict['name'],
+    #     tile_name=tile_name,
+    # )
+    # project_add.save()
+    # max_id = Project.objects.all().aggregate(Max('id'))['id__max']
+    # maxProjectQueryset = Project.objects.filter(id=max_id)
+    delete_project_data = {}
+    for item in delete_info:
+        delete_project_data = {
+            'project_name': item.project_name,
+            'tile_name': item.tile_name,
+            'id': item.id,
+            'active': item.active,
+            'add_time': item.add_time
+        }
+    # step 2、delete tile data, include tile folder and tile database
+
+    return JsonResponse(delete_project_data, status=200, safe=False)
 
 
 # TODO: get all project info
 @csrf_exempt
 def get_project(request):
-    all_project = Project.objects.all()
+    all_project = Project.objects.filter(active=True)  # 获取所有可见项目
+    project_list = []
+    for item in all_project:
+        item_dict = {
+            'id': item.id,
+            'project_name': item.project_name,
+            'tile_name': item.tile_name,
+            'add_time': item.add_time,
+            'active': item.active
+        }
+        project_list.append(item_dict)
+    if len(project_list):
+        project_info = {
+            "project_list": project_list,
+            "num": 10
+        }
+    else:
+        project_info = {
+            "message": "not data"
+        }
+    return JsonResponse(project_info, safe=False)
+
+
+# TODO: get max_id project info
+@csrf_exempt
+def get_max_id_project(request):
+    # all_project = Project.objects.all().aggregate(Max('id'))
+    max_id = Project.objects.all().aggregate(Max('id'))['id__max']
+    all_project = Project.objects.filter(id=max_id)
+    #
+    CURRENT_PROJECT['pre_project_id'] = max_id
     project_list = []
     for item in all_project:
         item_dict = {
@@ -474,10 +557,20 @@ def get_project(request):
             'add_time': item.add_time
         }
         project_list.append(item_dict)
-    return HttpResponse(project_list)
+    if len(project_list):
+        project_info = {
+            "project_list": project_list,
+            "num": 10
+        }
+    else:
+        project_info = {
+            "message": "not data"
+        }
+    return JsonResponse(project_info, safe=False)
+
 
 # TODO: 下面是所有接口
-# step 1、接受开始扫描状态
+# step 1、start scan, check is has folder for save scan data, modify scan status,
 @csrf_exempt
 def start_scan(request):
     """
@@ -486,26 +579,50 @@ def start_scan(request):
     """
     try:
         print('开始扫描，进行扫描初始化')
-        pcd_path = MEDIA_ROOT + "/pointCloud"
-        tile_path = MEDIA_ROOT + "/conver"
-        track_path = MEDIA_ROOT + "/track/transformations.txt"
-        shutil.rmtree(pcd_path)
-        shutil.rmtree(tile_path)
-        # with open(track_path, 'a+', encoding='utf-8') as f:
-        #     f.truncate(0)
-        # sleep(1)
-        os.mkdir(pcd_path)
-        os.mkdir(tile_path)
-        point_cloud = PointCloudChunk.objects.all()
-        point_cloud.delete()
-        # 删除回环点数据
-        circle_point = CirclePoint.objects.all()
-        circle_point.delete()
+        # pcd_path = MEDIA_ROOT + "/pointCloud"
+        # tile_path = MEDIA_ROOT + "/conver"
+        # track_path = MEDIA_ROOT + "/track/transformations.txt"
+        # shutil.rmtree(pcd_path)
+        # shutil.rmtree(tile_path)
+        # # with open(track_path, 'a+', encoding='utf-8') as f:
+        # #     f.truncate(0)
+        # # sleep(1)
+        # os.mkdir(pcd_path)
+        # os.mkdir(tile_path)
+        # point_cloud = PointCloudChunk.objects.all()
+        # point_cloud.delete()
+        # # 删除回环点数据
+        # circle_point = CirclePoint.objects.all()
+        # circle_point.delete()
+        # TODO: upper code is before the change
+        # 1、检查是否存在保存扫描数据的文件夹，没有则自动创建
+        if CURRENT_PROJECT['project_id'] == -1:
+            # 创建点云碎片文件夹
+            current_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
+            tile_name = 'conver' + current_time
+            project_name = 'project' + current_time
+            tile_path = MEDIA_ROOT + '/tile/' + tile_name
+            os.mkdir(tile_path)
+            # write to database
+            project_add = Project(
+                project_name=project_name,
+                tile_name=tile_name,
+            )
+            project_add.save()
+            max_id = Project.objects.all().aggregate(Max('id'))['id__max']  # 最大值可能删除了
+            maxProjectQueryset = Project.objects.filter(id=max_id)
+            for item in maxProjectQueryset:
+                CURRENT_PROJECT["project_id"] = item.id  # item.id
+                CURRENT_PROJECT['name'] = item.project_name
+                CURRENT_PROJECT['status'] = 'pending'
+                CURRENT_PROJECT['tile_path'] = tile_path
+
+        # 2、TODO:清空路径文件夹、点云文件夹、指定项目路径
 
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=404)
 
-    return HttpResponse(status=200)
+    return JsonResponse(CURRENT_PROJECT, status=200)
 
 
 # step 4、接受停止扫描状态
@@ -547,7 +664,7 @@ def add_point_cloud(request):
     """
     try:
         ProjectQueryset = Project.objects.filter(id=CURRENT_PROJECT['project_id'])
-        track_path = MEDIA_ROOT + "/track/trackPoint.txt"
+        track_path = MEDIA_ROOT + "/track/trackPoint.txt"  # TODO: 需要修改为配置变量
         json_bytes = request.body
         # json_str = json_bytes.decode()
         track_dict = json.loads(json_bytes)
@@ -557,13 +674,13 @@ def add_point_cloud(request):
             track_dict['ep']) + ' ' + \
                       str(track_dict['ey']) + ' ' + str(track_dict['d'])
         # print('当前估计点数据=>:', track_point)
-        point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # 点云原始文件文件夹
+        point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # TODO: 点云原始文件文件夹,需要修改为配置变量
         if os.path.isfile(point_cloud_path):  # 正式版本需要判断xyz后缀文件
             # point_cloud_name = str(track_dict['id']) + ".pcd"
             point_cloud_rename = str(track_dict['id']) + ".xyz"
-            point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # 点云原始文件文件夹
-            os.rename(point_cloud_path, point_cloud_repath)
-            cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)
+            point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # TODO: 点云原始文件文件夹,不需要重命名
+            os.rename(point_cloud_path, point_cloud_repath)  # TODO: 对原始文件重命名，可能以后不需要
+            cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)  # TODO: 瓦片切割程序，需要修改部分功能
             if cloud_url is None:  # 如果cloud_url 为 None 说明切割瓦片失败
                 os.rename(point_cloud_repath, point_cloud_path)  # 瓦片切割失败，将xyz重新修改为pcd ProjectQueryset[0]
                 return HttpResponse(status=202)
@@ -585,7 +702,7 @@ def add_point_cloud(request):
         # 轨迹点追加
         with open(track_path, 'a+') as f:
             # json_str = json.dumps(dict, indent=0)
-            f.write(track_point)
+            f.write(track_point)  # TODO: 轨迹点写入到了轨迹文件中，可能需要修改
             f.write('\n')
             f.close()
 
@@ -598,9 +715,9 @@ def add_point_cloud(request):
 
 # step 3、获取瓦片url
 @csrf_exempt
-def get_point_cloud(request, pk):
+def get_point_cloud(request, project_id):
     track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt
-    current_id = int(pk)
+    current_id = int(project_id)
     # if request == current_id:
     if current_id == 999999:
         PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10, project_id=CURRENT_PROJECT.project_id)
@@ -610,7 +727,8 @@ def get_point_cloud(request, pk):
         max_cloud_id = current_id + 9
         PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id,
                                                             project_id=CURRENT_PROJECT['project_id'])
-        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id, circle_point_end__lt=max_cloud_id)
+        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id,
+                                                         circle_point_end__lt=max_cloud_id)
     point_list = []
     for point_cloud_item in PointCloudQueryset:
         if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求 point_cloud_item.project_id
@@ -666,6 +784,7 @@ def get_point_cloud(request, pk):
         }
         return JsonResponse(message_info, safe=False)
 
+
 # step 4、获取所有瓦片url
 @csrf_exempt
 def get_all_point_cloud(request, pk):
@@ -678,7 +797,8 @@ def get_all_point_cloud(request, pk):
     else:
         max_cloud_id = current_id + 99
         PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id)
-        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id, circle_point_end__lt=max_cloud_id)
+        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id,
+                                                         circle_point_end__lt=max_cloud_id)
     point_list = []
     for point_cloud_item in PointCloudQueryset:
         if point_cloud_item.cloud_id % 10 == 0 & point_cloud_item.cloud_id > current_id:
@@ -718,6 +838,7 @@ def get_all_point_cloud(request, pk):
             "message": False
         }
         return JsonResponse(message_info, safe=False)
+
 
 # 清除数据库所有数据--正式版本不需要此功能，直接在开始扫描状态接口中清空数据库
 @csrf_exempt
@@ -822,3 +943,12 @@ def add_circle_point(request):
         return HttpResponse(status=202)
     # circle_point_list,
     return HttpResponse(status=201)
+
+
+# 测试数据
+@csrf_exempt
+def test_data(request):
+    print(CURRENT_PROJECT['project_id'])
+    CURRENT_PROJECT['project_id'] = 100
+    print(CURRENT_PROJECT['project_id'])
+    return HttpResponse(status=200)

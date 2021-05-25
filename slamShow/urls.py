@@ -43,15 +43,18 @@ urlpatterns = [
     # url(r'^books/$', views.BooksAPIVIew.as_view()),
     url(r'^api/pointCloudBlank/$', views.point_delete),
     # url(r'^api/books_all/$', views.point_get),point_cloud
-    url(r'^api/project/$', views.scan_project),
+    url(r'^api/project/$', views.create_project),
     url(r'^api/projects/$', views.get_project),
+    url(r'^api/mproject/(?P<pk>\d+)/$', views.delete_project),
+    url(r'^api/max_project/$', views.get_max_id_project),
     url(r'^api/pointClouds/(?P<pk>\d+)/$', views.PointAPIVIew.as_view()),
     url(r'^api/startScan/$', views.start_scan),
     url(r'^api/stopScan/$', views.stop_scan),
     url(r'^api/point_cloud/$', views.add_point_cloud),
-    url(r'^api/point_cloud/(?P<pk>\d+)/$', views.get_point_cloud),
+    url(r'^api/point_cloud/(?P<project_id>\d+)/$', views.get_point_cloud),
     url(r'^api/single_point_cloud/(?P<pk>\d+)/$', views.get_single_point_cloud),
     url(r'^api/circle_point/$', views.add_circle_point),
+    url(r'^api/test/$', views.test_data),
 ]
 urlpatterns += static('api' + settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()  # 设置静态文件 部署到服务器静态文件不这样设置
