@@ -11,6 +11,7 @@ import subprocess
 from multiprocessing import Process, Pool
 import logging
 from slamShow.settings import MEDIA_ROOT
+from libs.globleConfig import CURRENT_PROJECT, POTREE_PATH
 
 logger = logging.getLogger(__name__)
 logger = logging.getLogger('django')
@@ -151,9 +152,14 @@ def test_run_PotreeConverter_exe(file_name):
 # TODO:根据文件路径，切割瓦片
 def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
     (only_file_name, ext) = os.path.splitext(original_file_name)
-    pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"
-    cmd_cut_xyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
-    clouds_path = '/media/conver/' + only_file_name + "_conver/"
+    # pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"  # TODO: 瓦片存放文件夹，需要修改为对应地址
+    pts_out_src = MEDIA_ROOT + "/tile/" + CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "_conver"  # TODO: 修改后的瓦片存放地址
+    #  TODO: cmd 切割命令，需要修改为对应地址
+    # cmd_cut_xyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
+    cmd_cut_xyz = POTREE_PATH + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
+    # clouds_path = '/media/conver/' + only_file_name + "_conver/"  # TODO: 拼接cloud.js时使用变量
+    clouds_path = '/media/tile/' + CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "_conver/"  # TODO: 修改后的
+    print('打印完成cmd命令->', cmd_cut_xyz)
     cut_process = subprocess.Popen(cmd_cut_xyz)
     # ubuntu 下面命令
     # cmdstrxyz = "/home/onrol/桌面/test/slamRealTimeShow/libs/linuxE57PotreeConverter/PotreeConverter " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
@@ -161,15 +167,15 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
     # clouds_path = '/api/media/conver/' + only_file_name + "_conver/"
     # cut_process = subprocess.Popen(cmdstrxyz, shell=True)
     try:
-
-        wait02 = cut_process.wait(timeout=86400)
-        if wait02 != 0:
-            # print("？？？？？？？？？？？wait02 != 0")
-            return None
+        print('start cut tile')
+        # wait02 = cut_process.communicate()  # wait(timeout=86400) communicate
+        # if wait02 != 0:
+        #     # print("？？？？？？？？？？？wait02 != 0")
+        #     return None
         # 如果文件不存在，则切割失败 cloud_js_path = os.path.join(filepath, "cloud.js").replace('\\', '/')
-        if not os.path.exists(pts_out_src + '/cloud.js'):
-            print('文件切割失败')
-            return None
+        # if not os.path.exists(pts_out_src + '/cloud.js'):
+        #     print('文件切割失败')
+        #     return None
 
     except Exception as e:
         # print("？？？？？？？？？？？？===== process timeout 执行失败结束进程 ======")

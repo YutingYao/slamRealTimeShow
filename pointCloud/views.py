@@ -10,7 +10,7 @@ from datetime import datetime
 
 from libs.PotreeConverter import test_read_point_cloud_dir, test_run_PotreeConverter_exe, read_conver_dir, \
     read_point_cloud_dir, read_track, read_point_cloud_file, run_PotreeConverter_exe_tile
-from libs.globleConfig import CURRENT_PROJECT
+from libs.globleConfig import CURRENT_PROJECT, TRACT_PATH, SOURCE_POINT_CLOUD_PATH, PLATFORM_INFO
 from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint, Project
 from slamShow.settings import MEDIA_ROOT
 import json
@@ -473,6 +473,11 @@ def create_project(request):
             'active': item.active,
             'add_time': item.add_time
         }
+    CURRENT_PROJECT["project_id"] = item.id  # item.id
+    CURRENT_PROJECT['project_name'] = item.project_name
+    CURRENT_PROJECT['status'] = 'notStart'
+    CURRENT_PROJECT['tile_path'] = tile_path
+    CURRENT_PROJECT['tile_name'] = tile_name
 
     return JsonResponse(create_project_data, status=201, safe=False)
 
@@ -484,23 +489,8 @@ def delete_project(request, pk):
     delete_info = Project.objects.get(id=pk)
     delete_info.active = False
     delete_info.save()
+    # 查看是否为当前扫描项目，如果是，则修改配置参数
     delete_info = Project.objects.filter(id=pk)
-    # print(delete_info)
-    # json_bytes = request.body
-    # # json_str = json_bytes.decode()
-    # project_dict = json.loads(json_bytes)
-    # 创建点云碎片文件夹
-    # tile_name = 'conver' + time.strftime("%Y%m%d%H%M%S", time.localtime())
-    # tile_path = MEDIA_ROOT + '/tile/' + tile_name
-    # os.mkdir(tile_path)
-    # # write to database
-    # project_add = Project(
-    #     project_name=project_dict['name'],
-    #     tile_name=tile_name,
-    # )
-    # project_add.save()
-    # max_id = Project.objects.all().aggregate(Max('id'))['id__max']
-    # maxProjectQueryset = Project.objects.filter(id=max_id)
     delete_project_data = {}
     for item in delete_info:
         delete_project_data = {
@@ -510,9 +500,11 @@ def delete_project(request, pk):
             'active': item.active,
             'add_time': item.add_time
         }
-    # step 2、delete tile data, include tile folder and tile database
+    # step 2、TODO: delete tile data, include tile folder and tile database
 
     return JsonResponse(delete_project_data, status=200, safe=False)
+
+
 
 
 # TODO: get all project info
@@ -607,15 +599,17 @@ def start_scan(request):
             project_add = Project(
                 project_name=project_name,
                 tile_name=tile_name,
+                status=''
             )
             project_add.save()
             max_id = Project.objects.all().aggregate(Max('id'))['id__max']  # 最大值可能删除了
             maxProjectQueryset = Project.objects.filter(id=max_id)
             for item in maxProjectQueryset:
-                CURRENT_PROJECT["project_id"] = item.id  # item.id
-                CURRENT_PROJECT['name'] = item.project_name
+                CURRENT_PROJECT['project_id'] = item.id  # item.id tile_name
+                CURRENT_PROJECT['project_name'] = item.project_name
                 CURRENT_PROJECT['status'] = 'pending'
                 CURRENT_PROJECT['tile_path'] = tile_path
+                CURRENT_PROJECT['tile_name'] = tile_name
 
         # 2、TODO:清空路径文件夹、点云文件夹、指定项目路径
 
@@ -637,17 +631,21 @@ def stop_scan(request):
         # print("book")
         # for item in point_list:
         #     print('点云=>:', item)
+        CURRENT_PROJECT['status'] = 'end'
+        delete_info = Project.objects.get(id=CURRENT_PROJECT['project_id'])
+        delete_info.status = 'end'
+        delete_info.save()
         print('停止扫描，停止数据请求操作，修改变量')
-        pool = ProcessPoolExecutor(3)
-        sources_file = "D:/test/test_move/abc.zip"
-        target_file = "D:/test/test_move_2/abc.zip"
-        index_last = target_file.rfind('/')  # 返回最右边（最后一次）的字符位置
-        test_target_file = target_file[0:index_last]
-        print('index_last=>:', index_last, test_target_file)
-        # all_path = "D:\\test\\test_move\\abc1.zip D:/test/test_move_2/abc1.zip"
-        # future = pool.submit(move_file_test, (sources_file, target_file))
-        # future = pool.submit(mymovefile, (sources_file, target_file))
-        # move_file_test(all_path)
+        # pool = ProcessPoolExecutor(3)
+        # sources_file = "D:/test/test_move/abc.zip"
+        # target_file = "D:/test/test_move_2/abc.zip"
+        # index_last = target_file.rfind('/')  # 返回最右边（最后一次）的字符位置
+        # test_target_file = target_file[0:index_last]
+        # print('index_last=>:', index_last, test_target_file)
+        # # all_path = "D:\\test\\test_move\\abc1.zip D:/test/test_move_2/abc1.zip"
+        # # future = pool.submit(move_file_test, (sources_file, target_file))
+        # # future = pool.submit(mymovefile, (sources_file, target_file))
+        # # move_file_test(all_path)
 
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=202)
@@ -664,7 +662,8 @@ def add_point_cloud(request):
     """
     try:
         ProjectQueryset = Project.objects.filter(id=CURRENT_PROJECT['project_id'])
-        track_path = MEDIA_ROOT + "/track/trackPoint.txt"  # TODO: 需要修改为配置变量
+        # track_path = MEDIA_ROOT + "/track/trackPoint.txt"  # TODO: 需要修改为配置变量
+        track_path = TRACT_PATH  # TODO: 修改后的轨迹文件路径
         json_bytes = request.body
         # json_str = json_bytes.decode()
         track_dict = json.loads(json_bytes)
@@ -674,12 +673,15 @@ def add_point_cloud(request):
             track_dict['ep']) + ' ' + \
                       str(track_dict['ey']) + ' ' + str(track_dict['d'])
         # print('当前估计点数据=>:', track_point)
-        point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # TODO: 点云原始文件文件夹,需要修改为配置变量
+        # point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # TODO: 点云原始文件文件夹,需要修改为配置变量
+        point_cloud_path = SOURCE_POINT_CLOUD_PATH + str(track_dict['id']) + ".pcd"  # TODO: 修改后的原始点云路径
         if os.path.isfile(point_cloud_path):  # 正式版本需要判断xyz后缀文件
-            # point_cloud_name = str(track_dict['id']) + ".pcd"
-            point_cloud_rename = str(track_dict['id']) + ".xyz"
-            point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # TODO: 点云原始文件文件夹,不需要重命名
-            os.rename(point_cloud_path, point_cloud_repath)  # TODO: 对原始文件重命名，可能以后不需要
+            if PLATFORM_INFO['system'] == 'Windows':
+                point_cloud_rename = str(track_dict['id']) + ".xyz"  # xyz TODO: ubuntu 下不需要重命名
+                # point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # TODO: xyz 点云原始文件文件夹,不需要重命名
+                point_cloud_repath = SOURCE_POINT_CLOUD_PATH + str(
+                    track_dict['id']) + ".xyz"  # TODO: xyz 点云原始文件文件夹,ubuntu不需要重命名
+                os.rename(point_cloud_path, point_cloud_repath)  # TODO: 对原始文件重命名，可能以后不需要
             cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)  # TODO: 瓦片切割程序，需要修改部分功能
             if cloud_url is None:  # 如果cloud_url 为 None 说明切割瓦片失败
                 os.rename(point_cloud_repath, point_cloud_path)  # 瓦片切割失败，将xyz重新修改为pcd ProjectQueryset[0]
@@ -692,13 +694,11 @@ def add_point_cloud(request):
                 project_id=CURRENT_PROJECT['project_id']
             )
             point_cloud_url.save()
-            print('cloud_url=>:', cloud_url)
             # 点云存在,进行点云切割
 
         else:
             # 点云不存在，直接跳过操作
-            print('点云不存在', point_cloud_path)
-            return HttpResponse(status=404)
+            return JsonResponse({"message": '点云文件不存在'}, status=404)
         # 轨迹点追加
         with open(track_path, 'a+') as f:
             # json_str = json.dumps(dict, indent=0)
@@ -710,7 +710,7 @@ def add_point_cloud(request):
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=202)
 
-    return HttpResponse(status=201)
+    return JsonResponse({"message": 'OK'}, status=201)
 
 
 # step 3、获取瓦片url
@@ -720,7 +720,7 @@ def get_point_cloud(request, project_id):
     current_id = int(project_id)
     # if request == current_id:
     if current_id == 999999:
-        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10, project_id=CURRENT_PROJECT.project_id)
+        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10, project_id=CURRENT_PROJECT['project_id'])
         CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__lt=10)
         # ProjectQueryset = Project.objects.filter(id=CURRENT_PROJECT.id)
     else:
@@ -780,7 +780,8 @@ def get_point_cloud(request, project_id):
         return JsonResponse(test_list_point, safe=False)
     else:  # 不需要返回点云数据
         message_info = {
-            "message": False
+            "message": False,
+            "cause": '点云瓦片数据不存在'
         }
         return JsonResponse(message_info, safe=False)
 
@@ -945,10 +946,17 @@ def add_circle_point(request):
     return HttpResponse(status=201)
 
 
+#  获取配置数据
+@csrf_exempt
+def get_status(request):
+    return JsonResponse(CURRENT_PROJECT, status=200)
+
+
 # 测试数据
 @csrf_exempt
 def test_data(request):
-    print(CURRENT_PROJECT['project_id'])
-    CURRENT_PROJECT['project_id'] = 100
-    print(CURRENT_PROJECT['project_id'])
+    # print(CURRENT_PROJECT['project_id'])
+    # CURRENT_PROJECT['project_id'] = 100
+
+    print(MEDIA_ROOT + "/pointCloud/")
     return HttpResponse(status=200)

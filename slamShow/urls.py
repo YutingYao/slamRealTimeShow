@@ -43,6 +43,7 @@ urlpatterns = [
     # url(r'^books/$', views.BooksAPIVIew.as_view()),
     url(r'^api/pointCloudBlank/$', views.point_delete),
     # url(r'^api/books_all/$', views.point_get),point_cloud
+    url(r'^api/status/$', views.get_status),
     url(r'^api/project/$', views.create_project),
     url(r'^api/projects/$', views.get_project),
     url(r'^api/mproject/(?P<pk>\d+)/$', views.delete_project),

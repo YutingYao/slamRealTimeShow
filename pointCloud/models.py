@@ -30,6 +30,7 @@ class Project(models.Model):
     project_name = models.CharField(default='项目', max_length=32, null=True, blank=True, verbose_name=u"项目名称2")
     tile_name = models.CharField(default='tile', max_length=32, null=True, blank=True, verbose_name=u"点云瓦片名称")
     active = models.BooleanField(default=True, verbose_name="是否激活", help_text="是否激活",)
+    status = models.CharField(default='notStart', max_length=32, verbose_name="扫描状态")
     add_time = models.DateTimeField(default=timezone.now, verbose_name=u"添加时间")
     # point_cloud_list = models.ForeignKey(PointCloudChunk, related_name='point_cloud', on_delete=models.SET_NULL, null=True, blank=True,
     #                              verbose_name=u"帧点云")
