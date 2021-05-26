@@ -10,7 +10,7 @@ CURRENT_PROJECT = {
     'project_name': '',  # 项目名称
     'project_id': 39,  # -1 表示没有保存瓦片文件夹和没有扫描项目
     'pre_project_id': None,
-    'status': 'notStart',  # 扫描状态
+    'status': 'notStart',  # 扫描状态 notStart 没有扫描数据文件夹 pending 代表已经存在 扫描数据文件夹， stop 代表扫描完成
     'tile_path': '',  # 瓦片存放路径
     'tile_name': 'conver20210525151322',
     'point_cloud_path': SOURCE_POINT_CLOUD_PATH,  # 原始点云路径

@@ -663,7 +663,7 @@ def start_all_scan(request):
         circle_point.delete()
         # TODO: upper code is before the change
         # 1、 TODO: 检查是否存在保存扫描数据的文件夹，没有则自动创建
-        if CURRENT_PROJECT['project_id'] == -1:
+        if True:  # CURRENT_PROJECT['project_id'] == -1
             # 创建点云碎片文件夹
             current_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
             tile_name = 'conver' + current_time
@@ -690,7 +690,7 @@ def start_all_scan(request):
 
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=404)
-
+    print('config---', CURRENT_PROJECT)
     return JsonResponse(CURRENT_PROJECT, status=200)
 
 # step 4、接受停止扫描状态
@@ -705,9 +705,9 @@ def stop_scan(request):
         # print("book")
         # for item in point_list:
         #     print('点云=>:', item)
-        CURRENT_PROJECT['status'] = 'end'
+        CURRENT_PROJECT['status'] = 'stop'
         delete_info = Project.objects.get(id=CURRENT_PROJECT['project_id'])
-        delete_info.status = 'end'
+        delete_info.status = 'stop'
         delete_info.save()
         print('停止扫描，停止数据请求操作，修改变量')
         # pool = ProcessPoolExecutor(3)
