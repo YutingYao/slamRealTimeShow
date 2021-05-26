@@ -11,6 +11,7 @@ from datetime import datetime
 from libs.PotreeConverter import test_read_point_cloud_dir, test_run_PotreeConverter_exe, read_conver_dir, \
     read_point_cloud_dir, read_track, read_point_cloud_file, run_PotreeConverter_exe_tile
 from libs.globleConfig import CURRENT_PROJECT, TRACT_PATH, SOURCE_POINT_CLOUD_PATH, PLATFORM_INFO
+from libs.utils import set_scan_parameter
 from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint, Project
 from slamShow.settings import MEDIA_ROOT
 import json
@@ -1018,6 +1019,25 @@ def add_circle_point(request):
         return HttpResponse(status=202)
     # circle_point_list,
     return HttpResponse(status=201)
+
+
+# TODO：scan parameter set
+@csrf_exempt
+def scan_param(request):
+    json_bytes = request.body
+    track_dict = json.loads(json_bytes)
+    print('参数=>:', track_dict)
+    # 轨迹点获取,从请求体中获取扫描参数数据
+    # track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
+    #               str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
+    #     track_dict['ep']) + ' ' + \
+    #               str(track_dict['ey']) + ' ' + str(track_dict['d'])
+    # TODO: 根据参数执行相应命令
+    result = set_scan_parameter()
+    if result:
+        return JsonResponse({"message": 'OK'}, status=200)
+    else:
+        return JsonResponse({"message": 'failed'}, status=200)
 
 
 #  获取配置数据

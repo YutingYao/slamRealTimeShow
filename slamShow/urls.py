@@ -56,6 +56,7 @@ urlpatterns = [
     url(r'^api/point_cloud/(?P<project_id>\d+)/$', views.get_point_cloud),
     url(r'^api/single_point_cloud/(?P<pk>\d+)/$', views.get_single_point_cloud),
     url(r'^api/circle_point/$', views.add_circle_point),
+    url(r'^api/scan_param/$', views.scan_param),
     url(r'^api/test/$', views.test_data),
 ]
 urlpatterns += static('api' + settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

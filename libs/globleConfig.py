@@ -17,6 +17,9 @@ CURRENT_PROJECT = {
     'track_path': '',  # 轨迹路径
 }
 POTREE_PATH = BASE_DIR + '/potree/windowsE57PotreeConverter/PotreeConverter.exe '
+SET_SCAN_PARAMETER = {
+
+}
 # 1、创建扫描文件夹，没有扫描，下次开机时，初始化为没有扫描文件夹
 # 2、后台确定扫描是调用start_scan接口，不调用就是没有开始扫描
 activeProject = ''
