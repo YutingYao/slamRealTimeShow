@@ -491,7 +491,6 @@ def delete_project(request, pk):
     delete_info.active = False
     delete_info.save()
     # 查看是否为当前扫描项目，如果是，则修改配置参数
-    print(pk, type(pk), CURRENT_PROJECT['project_id'], type(CURRENT_PROJECT['project_id']), pk == CURRENT_PROJECT['project_id'])
     if int_pk == CURRENT_PROJECT['project_id']:
         CURRENT_PROJECT['project_id'] = -1
         CURRENT_PROJECT['status'] = 'notStart'
@@ -499,8 +498,8 @@ def delete_project(request, pk):
         CURRENT_PROJECT['tile_name'] = ''
         CURRENT_PROJECT['point_cloud_path'] = ''
     # 删除项目对象瓦片数据和数据库数据
-    print(CURRENT_PROJECT)
     tile_path = MEDIA_ROOT + '/tile/' + delete_info.tile_name
+    print('是否存在->', tile_path, os.path.exists(tile_path))
     if os.path.exists(tile_path):
         shutil.rmtree(tile_path)  # TODO: 删除瓦片文件夹数据
     point_cloud = PointCloudChunk.objects.filter(project_id=delete_info.id)
@@ -602,7 +601,7 @@ def start_scan(request):
         # circle_point = CirclePoint.objects.all()
         # circle_point.delete()
         # TODO: upper code is before the change
-        # 1、检查是否存在保存扫描数据的文件夹，没有则自动创建
+        # 1、 TODO: 检查是否存在保存扫描数据的文件夹，没有则自动创建
         if CURRENT_PROJECT['project_id'] == -1:
             # 创建点云碎片文件夹
             current_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
@@ -633,6 +632,66 @@ def start_scan(request):
 
     return JsonResponse(CURRENT_PROJECT, status=200)
 
+
+# step 1、start scan, check is has folder for save scan data, modify scan status,
+@csrf_exempt
+def start_all_scan(request):
+    """
+    开始扫描
+    路由： get /scan_init/
+    """
+    try:
+        print('开始扫描，进行扫描初始化')
+        # pcd_path = MEDIA_ROOT + "/pointCloud"
+        tile_path = MEDIA_ROOT + "/tile"  # conver tile
+        # track_path = MEDIA_ROOT + "/track/transformations.txt"
+        # shutil.rmtree(pcd_path)
+        shutil.rmtree(tile_path)
+        # # with open(track_path, 'a+', encoding='utf-8') as f:
+        # #     f.truncate(0)
+        # # sleep(1)
+        # os.mkdir(pcd_path)
+        os.mkdir(tile_path)
+        # TODO: 删除所有点云数据
+        point_cloud = PointCloudChunk.objects.all()
+        point_cloud.delete()
+        # TODO: 删除所有项目
+        project = Project.objects.all()
+        project.delete()
+        # TODO: 删除所有回环点数据
+        circle_point = CirclePoint.objects.all()
+        circle_point.delete()
+        # TODO: upper code is before the change
+        # 1、 TODO: 检查是否存在保存扫描数据的文件夹，没有则自动创建
+        if CURRENT_PROJECT['project_id'] == -1:
+            # 创建点云碎片文件夹
+            current_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
+            tile_name = 'conver' + current_time
+            project_name = 'project' + current_time
+            tile_path = MEDIA_ROOT + '/tile/' + tile_name
+            os.mkdir(tile_path)
+            # write to database
+            project_add = Project(
+                project_name=project_name,
+                tile_name=tile_name,
+                status=''
+            )
+            project_add.save()
+            max_id = Project.objects.all().aggregate(Max('id'))['id__max']  # 最大值可能删除了
+            maxProjectQueryset = Project.objects.filter(id=max_id)
+            for item in maxProjectQueryset:
+                CURRENT_PROJECT['project_id'] = item.id  # item.id tile_name
+                CURRENT_PROJECT['project_name'] = item.project_name
+                CURRENT_PROJECT['status'] = 'pending'
+                CURRENT_PROJECT['tile_path'] = tile_path
+                CURRENT_PROJECT['tile_name'] = tile_name
+
+        # 2、TODO:清空路径文件夹、点云文件夹、指定项目路径
+
+    except PointCloudChunk.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return JsonResponse(CURRENT_PROJECT, status=200)
 
 # step 4、接受停止扫描状态
 @csrf_exempt
