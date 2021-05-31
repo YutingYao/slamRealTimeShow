@@ -1057,7 +1057,7 @@ def add_circle_point(request):
 def scan_param(request):
     json_bytes = request.body
     set_params = json.loads(json_bytes)
-    print('参数=>:', set_params)
+    # print('参数=>:', set_params)
     # 轨迹点获取,从请求体中获取扫描参数数据
     # track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
     #               str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
