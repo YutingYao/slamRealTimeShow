@@ -1,0 +1,31 @@
+*** Starting uWSGI 2.0.19.1 (64bit) on [Tue Apr 20 17:20:04 2021] ***
+compiled with version: 9.3.0 on 20 April 2021 07:05:29
+os: Linux-5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020
+nodename: onrol-Virtual-Machine
+machine: x86_64
+clock source: unix
+pcre jit disabled
+detected number of CPU cores: 1
+current working directory: /home/onrol/project/slamShow
+writing pidfile to uwsgi.pid
+detected binary path: /home/onrol/.local/bin/uwsgi
+your processes number limit is 15412
+your memory page size is 4096 bytes
+detected max file descriptor number: 1024
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to TCP address 127.0.0.1:8002 fd 3
+Python version: 3.8.5 (default, Jan 27 2021, 15:41:15)  [GCC 9.3.0]
+Python main interpreter initialized at 0x55e2a5c059e0
+python threads support enabled
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 416880 bytes (407 KB) for 8 cores
+*** Operational MODE: preforking+threaded ***
+WSGI app 0 (mountpoint='') ready in 1 seconds on interpreter 0x55e2a5c059e0 pid: 4050 (default app)
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI master process (pid: 4050)
+spawned uWSGI worker 1 (pid: 4054, cores: 2)
+spawned uWSGI worker 2 (pid: 4055, cores: 2)
+spawned uWSGI worker 3 (pid: 4056, cores: 2)
+spawned uWSGI worker 4 (pid: 4057, cores: 2)

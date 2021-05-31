@@ -25,13 +25,10 @@ jmespath==0.10.0
 lxml==4.5.1
 Markdown==3.2.2
 monotonic==1.5
-mysqlclient==1.4.6
 Pillow==6.2.1
-psycopg2==2.8.5
 pycparser==2.19
 pycryptodome==3.9.8
 PyJWT==1.7.1
-PyMySQL==0.9.3
 pyOpenSSL==19.1.0
 PySocks==1.7.1
 pytz==2020.1

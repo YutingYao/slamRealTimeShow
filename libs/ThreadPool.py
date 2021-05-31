@@ -8,6 +8,7 @@
 # -*- coding: utf-8 -*-
 import threading
 
+
 #   Create your tests here.
 #   ponit 单词写错,
 #   上传 原来的删除
@@ -20,11 +21,6 @@ logger = logging.getLogger('django')
 
 # logger.error("错误")
 # logger.info("警告")
-
-def ThreadPool2():
-    thread_pool = ThreadPoolExecutor(20)
-    return thread_pool
-
 
 class ThreadPool(object):
     def __init__(self):
@@ -55,8 +51,7 @@ class ThreadPool(object):
 
     def __del__(self):
         # pass self.executor.shutdown()
-        # self.executor.shutdown
-        self.executor.shutdown()
+        self.executor.shutdown
 
     # 主线程中的全局线程池
     # global_thread_pool的生命周期是Django主线程运行的生命周期

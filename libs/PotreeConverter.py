@@ -10,11 +10,8 @@ import shutil
 import subprocess
 from multiprocessing import Process, Pool
 import logging
-import time
-from slamShow.settings import MEDIA_ROOT, global_thread_pool, global_thread_pool2
-from concurrent.futures import as_completed
+from slamShow.settings import MEDIA_ROOT
 from libs.globleConfig import CURRENT_PROJECT, POTREE_PATH, SOURCE_POINT_CLOUD_PATH
-from concurrent.futures.thread import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 logger = logging.getLogger('django')
@@ -157,14 +154,14 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
     (only_file_name, ext) = os.path.splitext(original_file_name)
     # pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"  # TODO: 瓦片存放文件夹，需要修改为对应地址
     # pts_out_src = MEDIA_ROOT + "/tile/" + CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "_conver"  # TODO: 修改后的瓦片存放地址
-
-    pts_out_src = SOURCE_POINT_CLOUD_PATH + only_file_name + "_conver"  # TODO: 修改后的瓦片存放地址
+    pts_out_src = SOURCE_POINT_CLOUD_PATH + only_file_name + "conver"  # TODO: 修改后的瓦片存放地址
     #  TODO: cmd 切割命令，需要修改为对应地址
     # cmd_cut_xyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
     cmd_cut_xyz = POTREE_PATH + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
     # clouds_path = '/media/conver/' + only_file_name + "_conver/"  # TODO: 拼接cloud.js时使用变量
-    # clouds_path = '/media/tile/' + CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "_conver/"  # TODO: 修改后的
-    cut_process = subprocess.Popen(cmd_cut_xyz)
+    clouds_path = '/media/tile/' + CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "conver/"  # TODO: 修改后的
+    # print('打印完成cmd命令->', cmd_cut_xyz)
+    cut_process = subprocess.Popen(cmd_cut_xyz, shell=True)
     # ubuntu 下面命令
     # cmdstrxyz = "/home/onrol/桌面/test/slamRealTimeShow/libs/linuxE57PotreeConverter/PotreeConverter " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
     # test_path = 'http://172.18.104.126:80/api/media/conver/' + only_file_name + "_conver/"
@@ -185,31 +182,7 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
         # print("？？？？？？？？？？？？===== process timeout 执行失败结束进程 ======")
         cut_process.kill()
         return None
-    return pts_out_src + '/cloud.js'  # clouds_path  pts_out_src + '/cloud.js'
-
-
-# TODO: 测试线程调用方法
-def spider(page):
-    time.sleep(page)
-    print(f"crawl task{page} finished")
-    return page
-
-# TODO: 测试线程池
-def run_thread_Pool_Test():
-    # global_thread_pool.
-    # global_thread_pool.lock.acquire()  # TODO: 获取锁
-    # thread_pool = ThreadPoolExecutor(20)  # 定义5个线程执行此任务
-    task_list = []
-    for i in range(10):
-        # print('range--', i)
-        global_thread_pool.executor.submit(spider, i)
-        # task = global_thread_pool2.submit(spider, i)
-        # task_list.append(task)
-        # test_num(i)
-    # for future in as_completed(task_list):
-    #     data = future.result()
-    #     print(f"main: {data}")
-    # global_thread_pool.lock.release()  # TODO: 获取锁
+    return 'GOSLAMtemp/' + only_file_name + "conver/" + 'cloud.js'  # clouds_path  pts_out_src + '/cloud.js'
 
 
 # 读取文件夹，获取文件夹内所有文件信息

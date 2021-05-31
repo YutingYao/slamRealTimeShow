@@ -9,16 +9,16 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 
 from libs.PotreeConverter import test_read_point_cloud_dir, test_run_PotreeConverter_exe, read_conver_dir, \
-    read_point_cloud_dir, read_track, read_point_cloud_file, run_PotreeConverter_exe_tile, run_thread_Pool_Test
-from libs.globleConfig import CURRENT_PROJECT, TRACT_PATH, SOURCE_POINT_CLOUD_PATH, PLATFORM_INFO, TRACT_DATA
+    read_point_cloud_dir, read_track, read_point_cloud_file, run_PotreeConverter_exe_tile
+from libs.globleConfig import CURRENT_PROJECT, TRACT_PATH, SOURCE_POINT_CLOUD_PATH, PLATFORM_INFO, \
+    FILE_FORMAT, TRACT_DATA
 from libs.utils import set_scan_parameter
 from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint, Project
-from slamShow.settings import MEDIA_ROOT, global_thread_pool2, global_thread_pool
+from slamShow.settings import MEDIA_ROOT, global_thread_pool, TRACT_DATA_SET
 import json
 import time
 import shutil
 from time import sleep
-from libs.GeneratorMap import move_file_test, mymovefile
 
 from concurrent.futures import ProcessPoolExecutor
 
@@ -520,6 +520,8 @@ def delete_project(request, pk):
     return JsonResponse(delete_project_data, status=200, safe=False)
 
 
+
+
 # TODO: get all project info
 @csrf_exempt
 def get_project(request):
@@ -586,11 +588,11 @@ def start_scan(request):
         print('开始扫描，进行扫描初始化')
         # pcd_path = MEDIA_ROOT + "/pointCloud"
         # tile_path = MEDIA_ROOT + "/conver"
-        # track_path = MEDIA_ROOT + "/track/transformations.txt"
+        track_path = MEDIA_ROOT + "track/trackPoint.txt"
         # shutil.rmtree(pcd_path)
         # shutil.rmtree(tile_path)
-        # # with open(track_path, 'a+', encoding='utf-8') as f:
-        # #     f.truncate(0)
+        with open(track_path, 'a+', encoding='utf-8') as f:
+            f.truncate()
         # # sleep(1)
         # os.mkdir(pcd_path)
         # os.mkdir(tile_path)
@@ -642,15 +644,15 @@ def start_all_scan(request):
     try:
         print('开始扫描，进行扫描初始化')
         # pcd_path = MEDIA_ROOT + "/pointCloud"
-        tile_path = MEDIA_ROOT + "/tile"  # conver tile
-        # track_path = MEDIA_ROOT + "/track/transformations.txt"
+        # tile_path = MEDIA_ROOT + "/tile"  # conver tile
+        track_path = MEDIA_ROOT + "/track/trackPoint.txt"
         # shutil.rmtree(pcd_path)
-        shutil.rmtree(tile_path)
-        # # with open(track_path, 'a+', encoding='utf-8') as f:
-        # #     f.truncate(0)
+        # shutil.rmtree(tile_path)
+        with open(track_path, 'a+', encoding='utf-8') as f:
+            f.truncate(0)
         # # sleep(1)
         # os.mkdir(pcd_path)
-        os.mkdir(tile_path)
+        # os.mkdir(tile_path)
         # TODO: 删除所有点云数据
         point_cloud = PointCloudChunk.objects.all()
         point_cloud.delete()
@@ -660,39 +662,10 @@ def start_all_scan(request):
         # TODO: 删除所有回环点数据
         circle_point = CirclePoint.objects.all()
         circle_point.delete()
-        # TODO: upper code is before the change
-        # 1、 TODO: 检查是否存在保存扫描数据的文件夹，没有则自动创建
-        show_version = 1
-        if show_version == 2:  # CURRENT_PROJECT['project_id'] == -1
-            # 创建点云碎片文件夹
-            current_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
-            # tile_name = 'conver' + current_time
-            project_name = 'project' + current_time
-            # tile_path = MEDIA_ROOT + '/tile/' + tile_name
-            # os.mkdir(tile_path)
-            # write to database
-            project_add = Project(
-                project_name=project_name,
-                tile_name='tile_name',  # tile_name
-                status=''
-            )
-            project_add.save()
-            max_id = Project.objects.all().aggregate(Max('id'))['id__max']  # 最大值可能删除了
-            maxProjectQueryset = Project.objects.filter(id=max_id)
-            for item in maxProjectQueryset:
-                CURRENT_PROJECT['project_id'] = item.id  # item.id tile_name
-                CURRENT_PROJECT['project_name'] = item.project_name
-                CURRENT_PROJECT['status'] = 'pending'
-                CURRENT_PROJECT['tile_path'] = tile_path
-                CURRENT_PROJECT['tile_name'] = tile_name
-
-        # 2、TODO:清空路径文件夹、点云文件夹、指定项目路径
 
     except PointCloudChunk.DoesNotExist:
         return HttpResponse(status=404)
-    print('config---', CURRENT_PROJECT)
     return JsonResponse(CURRENT_PROJECT, status=200)
-
 
 # step 4、接受停止扫描状态
 @csrf_exempt
@@ -737,37 +710,67 @@ def add_point_cloud(request):
     """
     try:
         ProjectQueryset = Project.objects.filter(id=CURRENT_PROJECT['project_id'])
-        # track_path = MEDIA_ROOT + "/track/trackPoint.txt"  # TODO: 需要修改为配置变量
-        track_path = TRACT_PATH  # TODO: 修改后的轨迹文件路径
+        track_path = MEDIA_ROOT + "/track/trackPoint.txt"  # TODO: 需要修改为配置变量
+        # track_path = TRACT_PATH  # TODO: 修改后的轨迹文件路径
         json_bytes = request.body
         # json_str = json_bytes.decode()
         track_dict = json.loads(json_bytes)
-        # for item in track_dict['data']:
-        #     print(item)
+        track_point = ''
+        # current_point_cloud = {
+        #     'id': 0,
+        #     'x': 0,
+        #     'y': 0,
+        #     'er': 0,
+        #     'ep': 0,
+        #     'ey': 0
+        # }
+        #  TODO: 根据data列表最后元素id切割数据
+        current_point_cloud = track_dict['data'][-1]
         TRACT_DATA = track_dict['data']
+        tract_try = json.dumps(TRACT_DATA)
+        with open(track_path, 'w+') as f:
+            # json_str = json.dumps(dict, indent=0)
+            f.write(tract_try)  # TODO: 轨迹点写入到了轨迹文件中，可能需要修改
+            # f.write('\n')
+            f.close()
+        print('TRACT_DATA--', TRACT_DATA)
+        # #  TODO: 根据全局变量切割点云
+        # for item in track_dict['data']:
+        #     if item['id'] == CURRENT_PROJECT['point_cloud_id']:
+        #         current_point_cloud = item
         # 轨迹点获取,从请求体中获取轨迹数据
-        track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
-                      str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
-            track_dict['ep']) + ' ' + \
-                      str(track_dict['ey']) + ' ' + str(track_dict['d'])
+        track_point = str(current_point_cloud['id']) + ' ' + str(current_point_cloud['x']) + ' ' + str(current_point_cloud['y']) + ' ' + \
+                        str(current_point_cloud['z']) + ' ' + str(current_point_cloud['er']) + ' ' + str(
+            current_point_cloud['ep']) + ' ' + \
+                        str(current_point_cloud['ey'])
+
+        # # TODO: 轨迹点获取,从请求体中获取轨迹数据
+        # track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
+        #               str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
+        #     track_dict['ep']) + ' ' + \
+        #               str(track_dict['ey']) + ' ' + str(track_dict['d'])
         # print('当前估计点数据=>:', track_point)
+        # os.path.exists('/GOSLAM/Downloads/GOSLAMTemp/0.pcd')
+        # os.path.isfile('/GOSLAM/Downloads/GOSLAMTemp/0.pcd')
         # point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # TODO: 点云原始文件文件夹,需要修改为配置变量
-        point_cloud_path = SOURCE_POINT_CLOUD_PATH + str(track_dict['id']) + ".pcd"  # TODO: 修改后的原始点云路径
-        print('点云路径=>:', point_cloud_path)
+        point_cloud_path = SOURCE_POINT_CLOUD_PATH + str(current_point_cloud['id']) + FILE_FORMAT  # TODO: 修改后的原始点云路径
+        # print(point_cloud_path)
+        cloud_url = '1'
         if os.path.isfile(point_cloud_path):  # 正式版本需要判断xyz后缀文件
             if PLATFORM_INFO['system'] == 'Windows':
-                point_cloud_rename = str(track_dict['id']) + ".xyz"  # xyz TODO: ubuntu 下不需要重命名
+                point_cloud_rename = str(current_point_cloud['id']) + ".xyz"  # xyz TODO: ubuntu 下不需要重命名
                 # point_cloud_repath = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".xyz"  # TODO: xyz 点云原始文件文件夹,不需要重命名
                 point_cloud_repath = SOURCE_POINT_CLOUD_PATH + str(
                     track_dict['id']) + ".xyz"  # TODO: xyz 点云原始文件文件夹,ubuntu不需要重命名
                 os.rename(point_cloud_path, point_cloud_repath)  # TODO: 对原始文件重命名，可能以后不需要
-            # cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)  # TODO: 瓦片切割程序，需要修改部分功能
-            # cloud_url = global_thread_pool2.submit(run_PotreeConverter_exe_tile, point_cloud_repath, point_cloud_rename)
-            thread_obj = global_thread_pool.executor.submit(run_PotreeConverter_exe_tile, point_cloud_repath,
-                                                            point_cloud_rename)
-            point_cloud_name = str(track_dict['id']) + ".pcd"
+                # cloud_url = run_PotreeConverter_exe_tile(point_cloud_repath, point_cloud_rename)  # TODO: 瓦片切割程序，需要修改部分功能
+            else:
+                point_cloud_name = str(current_point_cloud['id']) + FILE_FORMAT  # xyz TODO: ubuntu 下不需要重命名
+            print('切割瓦片')
+            # cloud_url = run_PotreeConverter_exe_tile(point_cloud_path, point_cloud_name)  # TODO: 瓦片切割程序，需要修改部分功能
+            thread_obj = global_thread_pool.executor.submit(run_PotreeConverter_exe_tile, point_cloud_path, point_cloud_name)
             (only_file_name, ext) = os.path.splitext(point_cloud_name)
-            cloud_url = SOURCE_POINT_CLOUD_PATH + '/' + only_file_name + "_conver/cloud.js"
+            cloud_url = '/GOSLAMtemp/' + only_file_name + "conver/cloud.js"
             if cloud_url is None:  # 如果cloud_url 为 None 说明切割瓦片失败
                 os.rename(point_cloud_repath, point_cloud_path)  # 瓦片切割失败，将xyz重新修改为pcd ProjectQueryset[0]
                 return HttpResponse(status=202)
@@ -775,7 +778,7 @@ def add_point_cloud(request):
                 cloud_project='点云项目',
                 cloud_name='点云名称',
                 cloud_url=cloud_url,
-                cloud_id=str(track_dict['id']),
+                cloud_id=str(current_point_cloud['id']),
                 project_id=CURRENT_PROJECT['project_id']
             )
             point_cloud_url.save()
@@ -784,13 +787,13 @@ def add_point_cloud(request):
         else:
             # 点云不存在，直接跳过操作
             return JsonResponse({"message": '点云文件不存在'}, status=404)
-        # 轨迹点追加
-        with open(track_path, 'a+') as f:
-            # json_str = json.dumps(dict, indent=0)
-            f.write(track_point)  # TODO: 轨迹点写入到了轨迹文件中，可能需要修改
-            f.write('\n')
-            f.close()
-        CURRENT_PROJECT['point_cloud_id'] += 1
+        # 轨迹点追加 /GOSLAM/Downloads/GOSLAMTemp/trackPoint.txt
+        # with open(track_path, 'a+') as f:
+        #     # json_str = json.dumps(dict, indent=0)
+        #     f.write(track_point)  # TODO: 轨迹点写入到了轨迹文件中，可能需要修改
+        #     f.write('\n')
+        #     f.close()
+        CURRENT_PROJECT['point_cloud_id'] = current_point_cloud['id']
 
 
     except PointCloudChunk.DoesNotExist:
@@ -802,18 +805,16 @@ def add_point_cloud(request):
 # step 3、获取瓦片url
 @csrf_exempt
 def get_point_cloud(request, project_id):
-    # track_path = MEDIA_ROOT + "/track"  # trackPoint.txt  transformations.txt, global variate save track point
+    track_path = MEDIA_ROOT + "/track/trackPoint.txt"  # trackPoint.txt  transformations.txt
     current_id = int(project_id)
+    print('001')
     # if request == current_id:
     if current_id == 999999:
-        # PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10, project_id=CURRENT_PROJECT['project_id'])
         PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10)
         CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__lt=10)
         # ProjectQueryset = Project.objects.filter(id=CURRENT_PROJECT.id)
     else:
         max_cloud_id = current_id + 9
-        # PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id,
-        #                                                     project_id=CURRENT_PROJECT['project_id'])
         PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id)
         CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id,
                                                          circle_point_end__lt=max_cloud_id)
@@ -828,7 +829,7 @@ def get_point_cloud(request, project_id):
             #         }
             # else:
             #     project_info = None
-            if point_cloud_item.cloud_id > current_id:
+            if point_cloud_item.cloud_id >= current_id:
                 point_list.append({
                     'cloud_id': point_cloud_item.cloud_id,
                     'cloud_name': point_cloud_item.cloud_name,
@@ -845,28 +846,37 @@ def get_point_cloud(request, project_id):
                 'project': point_cloud_item.project_id
             })
     circle_point_list = []
+    print('qingqiu')
     for item in CirclePointQueryset:
-        print('打印数据集item=>:', item.id)
+        # print('打印数据集item=>:', item.id)
         circle_point_item = {
             'start_index': item.circle_point_start,
             'end_index': item.circle_point_end,
+
         }
         circle_point_list.append(circle_point_item)
     if point_list:  # 需要返回点云
         point_list_length = len(point_list)
-        # TODO track_data = read_track(track_path)  # 读取轨迹数据
+        # track_data = read_track(track_path)  # 读取轨迹数据
         # if current_id != 99999:
         #     valid_track_data = track_data[:point_list_length]
         # else:
         #     valid_track_data = track_data[:point_list_length]
-        # TODO: 每次发送当前帧的轨迹点
-        # track_data = []
+        # TODO: 只发送当前所需轨迹点
+        # tract_data = []
         # for point_item in TRACT_DATA:
-        #     if (point_item['id'] >= current_id) and (point_item['id'] <= max_cloud_id):
-        #         track_data.append(point_item)
-
+        #     if (point_cloud_item['id'] >= current_id) & (point_cloud_item['id'] <= max_cloud_id):
+        #         tract_data.append(point_item)
+        # print('TRACT_DATA2', TRACT_DATA2)
+        tract_data = []
+        with open(track_path, 'r') as f:
+            # json_str = json.dumps(dict, indent=0)
+            tract_data = json.loads(f.read())
+            # f.write(tract_try)  # TODO: 轨迹点写入到了轨迹文件中，可能需要修改
+            # f.write('\n')
+            f.close()       
         test_list_point = {
-            "track": TRACT_DATA,  # TODO: 所有轨迹数据
+            "track": tract_data,  # tract_data TRACT_DATA TRACT_DATA_SET
             "point": point_list,
             "circle_point": circle_point_list,
             "message": True
@@ -1072,5 +1082,4 @@ def test_data(request):
     # CURRENT_PROJECT['project_id'] = 100
 
     # print(MEDIA_ROOT + "/pointCloud/")
-    run_thread_Pool_Test()
     return HttpResponse(status=200)

@@ -14,22 +14,18 @@ import os
 import sys
 from pathlib import Path
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
 from libs.ProcessPool import ProcessPool
-from libs.ThreadPool import ThreadPool, ThreadPool2
+from libs.ThreadPool import ThreadPool
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace('\\', '/')
 
+TRACT_DATA_SET = [{'id': 0, 'x': 0.0, 'y': -0.0, 'z': 0.0, 'er': 0.1589, 'ep': -0.2975, 'ey': 1.3474}]
 
-global_process_pool = ProcessPool()
-
-global_thread_pool = ThreadPool()
-global_thread_pool2 = ThreadPool2()
 # TOTO: apps 加入基础路径
 # sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 # Quick-start development settings - unsuitable for production
@@ -55,8 +51,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_filters',
-    'corsheaders',
-    'rest_framework_simplejwt',
+   #  'corsheaders',
+    #'rest_framework_simplejwt',
     'pointCloud'
 ]
 
@@ -70,7 +66,7 @@ MIDDLEWARE = [
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
+    # 'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
