@@ -6,7 +6,7 @@ class ConfigFile:
     __flag = False
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     TRACT_PATH = '/GOSLAM/Downloads/GOSLAMtemp/trackPoint.txt'  # TODO: track point file path
-    TRACT_DATA = [{'id': 0, 'x': 0.0, 'y': -0.0, 'z': 0.0, 'er': 0.1589, 'ep': -0.2975, 'ey': 1.3474}]
+    TRACT_DATA = []
     FILE_FORMAT = '_.pcd'
     PLATFORM_INFO = {
         'system': 'Linux',  # Windows

@@ -728,13 +728,14 @@ def add_point_cloud(request):
         #  TODO: 根据data列表最后元素id切割数据
         current_point_cloud = track_dict['data'][-1]
         CONFIG_FILE.TRACT_DATA = track_dict['data']
+        print('打印轨迹点数据--', CONFIG_FILE.TRACT_DATA)
         tract_try = json.dumps(CONFIG_FILE.TRACT_DATA)
         with open(track_path, 'w+') as f:
             # json_str = json.dumps(dict, indent=0)
             f.write(tract_try)  # TODO: 轨迹点写入到了轨迹文件中，可能需要修改
             # f.write('\n')
             f.close()
-        print('CONFIG_FILE.TRACT_DATA--', CONFIG_FILE.TRACT_DATA)
+        # print('CONFIG_FILE.TRACT_DATA--', CONFIG_FILE.TRACT_DATA)
         # #  TODO: 根据全局变量切割点云
         # for item in track_dict['data']:
         #     if item['id'] == CONFIG_FILE.CURRENT_PROJECT['point_cloud_id']:
@@ -1085,4 +1086,4 @@ def test_data(request):
     # CONFIG_FILE.CURRENT_PROJECT['project_id'] = 100
 
     # print(MEDIA_ROOT + "/pointCloud/")
-    return HttpResponse(status=200)
+    return JsonResponse(CONFIG_FILE.TRACT_DATA, status=200, safe=False)
