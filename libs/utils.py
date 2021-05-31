@@ -193,9 +193,9 @@ def base64_turn_png(str_base64, path=None, image_type="avatar"):
 
 
 # TODO: 执行参数设置命令
-def set_scan_parameter():
+def set_scan_parameter(set_params):
     # ['calc', 'mspaint', 'notepad', 'write', 'osk'] ['calc', r'mkdir C:\Users\peiqi\Desktop\1_conver\test2']
-    start = datetime.datetime.now()
+    # start = datetime.datetime.now()
     for cmd in ['Date']:
         try:
             cut_process = subprocess.Popen(cmd, shell=True)

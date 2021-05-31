@@ -1054,15 +1054,15 @@ def add_circle_point(request):
 @csrf_exempt
 def scan_param(request):
     json_bytes = request.body
-    track_dict = json.loads(json_bytes)
-    print('参数=>:', track_dict)
+    set_params = json.loads(json_bytes)
+    print('参数=>:', set_params)
     # 轨迹点获取,从请求体中获取扫描参数数据
     # track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
     #               str(track_dict['z']) + ' ' + str(track_dict['i']) + ' ' + str(track_dict['er']) + ' ' + str(
     #     track_dict['ep']) + ' ' + \
     #               str(track_dict['ey']) + ' ' + str(track_dict['d'])
     # TODO: 根据参数执行相应命令
-    result = set_scan_parameter()
+    result = set_scan_parameter(set_params)
     if result:
         return JsonResponse({"message": 'OK'}, status=200)
     else:

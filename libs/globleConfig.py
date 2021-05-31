@@ -19,6 +19,18 @@ CURRENT_PROJECT = {
     'point_cloud_path': SOURCE_POINT_CLOUD_PATH,  # 原始点云路径
     'track_path': '',  # 轨迹路径
 }
+SCAN_SET = {
+    'outdoor': '',
+    'indoor': '',
+    'enableLoopback': '',
+    'offLoopback': '',
+    'enableOptimize': '',
+    'offOptimize': '',
+    'saveNoSample': '',
+    'deleteNoSample': '',
+    'saveSample': '',
+    'deleteSample': ''
+}
 # PotreeUbuntu20Potree
 POTREE_PATH = BASE_DIR + '/libs/PotreeUbuntu20Potree/PotreeConverter '
 SET_SCAN_PARAMETER = {
