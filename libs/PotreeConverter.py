@@ -11,8 +11,8 @@ import subprocess
 from multiprocessing import Process, Pool
 import logging
 from slamShow.settings import MEDIA_ROOT
-from libs.globleConfig import CURRENT_PROJECT, POTREE_PATH, SOURCE_POINT_CLOUD_PATH
-
+# from libs.globleConfig import CURRENT_PROJECT, POTREE_PATH, SOURCE_POINT_CLOUD_PATH
+from libs.globleConfig import CONFIG_FILE
 logger = logging.getLogger(__name__)
 logger = logging.getLogger('django')
 complete_list = [1, 2, 3, 4, 5]
@@ -153,13 +153,13 @@ def test_run_PotreeConverter_exe(file_name):
 def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
     (only_file_name, ext) = os.path.splitext(original_file_name)
     # pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"  # TODO: 瓦片存放文件夹，需要修改为对应地址
-    # pts_out_src = MEDIA_ROOT + "/tile/" + CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "_conver"  # TODO: 修改后的瓦片存放地址
-    pts_out_src = SOURCE_POINT_CLOUD_PATH + only_file_name + "conver"  # TODO: 修改后的瓦片存放地址
+    # pts_out_src = MEDIA_ROOT + "/tile/" + CONFIG_FILE.CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "_conver"  # TODO: 修改后的瓦片存放地址
+    pts_out_src = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + only_file_name + "conver"  # TODO: 修改后的瓦片存放地址
     #  TODO: cmd 切割命令，需要修改为对应地址
     # cmd_cut_xyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
-    cmd_cut_xyz = POTREE_PATH + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
+    cmd_cut_xyz = CONFIG_FILE.POTREE_PATH + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
     # clouds_path = '/media/conver/' + only_file_name + "_conver/"  # TODO: 拼接cloud.js时使用变量
-    clouds_path = '/media/tile/' + CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "conver/"  # TODO: 修改后的
+    clouds_path = '/media/tile/' + CONFIG_FILE.CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "conver/"  # TODO: 修改后的
     # print('打印完成cmd命令->', cmd_cut_xyz)
     cut_process = subprocess.Popen(cmd_cut_xyz, shell=True)
     # ubuntu 下面命令

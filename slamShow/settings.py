@@ -18,6 +18,7 @@ from pathlib import Path
 # BASE_DIR = Path(__file__).resolve().parent.parent
 from libs.ProcessPool import ProcessPool
 from libs.ThreadPool import ThreadPool
+# from libs.globleConfig import ConfigFile
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -114,6 +115,9 @@ ROOT_URLCONF = 'slamShow.urls'
 global_process_pool = ProcessPool()
 
 global_thread_pool = ThreadPool()
+
+# TODO：创建全局配置参数--单例模式
+# global_config_file = ConfigFile()
 
 TEMPLATES = [
     {

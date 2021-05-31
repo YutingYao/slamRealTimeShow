@@ -10,7 +10,8 @@ import time, base64, os, random
 import logging
 import subprocess
 import datetime
-from libs.globleConfig import SCAN_SET
+# from libs.globleConfig import SCAN_SET
+from libs.globleConfig import CONFIG_FILE
 
 logger = logging.getLogger(__name__)
 logger = logging.getLogger('django')
@@ -199,7 +200,7 @@ def set_scan_parameter(set_params):
     # start = datetime.datetime.now()
     for cmd_v in set_params.values():
         try:
-            print('cmd_v--->:', SCAN_SET[cmd_v])
+            print('cmd_v--->:', CONFIG_FILE.SCAN_SET[cmd_v])
             # cut_process = subprocess.Popen(cmd_v, shell=True)
             # a = cut_process.communicate()
             # print('打印结果=>:', a)  # TODO：获取修改后的值, 需要添加是否修改成功判断, 如果没修改成功需要，再次修改-直到成功为止
