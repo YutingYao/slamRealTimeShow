@@ -1028,8 +1028,10 @@ def add_circle_point(request):
         for circle_point_item in circle_point_dict['circle_point']:
             # print('打印回环点item=>:', circle_point_item)
             circle_point_item_data = CirclePoint(
-                circle_point_start=int(circle_point_item['start_track_index']),
-                circle_point_end=int(circle_point_item['end_track_index']),
+                # circle_point_start=int(circle_point_item['start_track_index']),
+                # circle_point_end=int(circle_point_item['end_track_index']),
+                circle_point_start=int(circle_point_item[0]),
+                circle_point_end=int(circle_point_item[1]),
             )
             circle_point_item_data.save()
         # 查询所有回环点数据
