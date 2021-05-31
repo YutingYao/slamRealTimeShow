@@ -2,13 +2,15 @@ from slamShow.settings import BASE_DIR, MEDIA_ROOT
 
 SOURCE_POINT_CLOUD_PATH = 'D:/slamPointCloudShow/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
 TRACT_PATH = 'D:/slamPointCloudShow/GOSLAMtemp/trackPoint.txt'  # TODO: track point file path
+TRACT_DATA = None
 PLATFORM_INFO = {
     'system': 'Windows',
     'version': 10  # 10 ;linux 16 20 ...
 }
 CURRENT_PROJECT = {
     'project_name': '',  # 项目名称
-    'project_id': 39,  # -1 表示没有保存瓦片文件夹和没有扫描项目
+    'project_id': 0,  # -1 表示没有保存瓦片文件夹和没有扫描项目
+    'point_cloud_id': 0,
     'pre_project_id': None,
     'status': 'notStart',  # 扫描状态 notStart 没有扫描数据文件夹 pending 代表已经存在 扫描数据文件夹， stop 代表扫描完成
     'tile_path': '',  # 瓦片存放路径

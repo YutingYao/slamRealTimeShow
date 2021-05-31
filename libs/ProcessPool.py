@@ -58,32 +58,32 @@ class ProcessPool(object):
     # 主线程中的全局线程池
     # global_thread_pool的生命周期是Django主线程运行的生命周期
 
-# def batch_thread(self):
-#     global_process_pool.lock.acquire()  # TODO: 获取锁
-#     try:
-#         ...
-#         global_process_pool.lock.release()
-#     except Exception:
-#         trace_log = traceback.format_exc()
-#         logger.error('异步任务执行失败:\n %s' % trace_log)
-#         global_process_pool.lock.release()  # TODO: 释放锁
-#
-#
-# if __name__ == '__main__':
-#
-#     global_process_pool = ProcessPool()
-#
-#     # 提交一个异步任务
-#     # future = global_thread_pool.executor.submit(batch_thread, project_id)
-#     future = global_process_pool.executor.map(batch_thread, "project_id")  # 任务函数,任务id
-#
-#     global_process_pool.future_dict["project_id"] = future
-#     # 检查异步任务
-#     if global_process_pool.is_project_thread_running("project_id"):
-#         raise exceptions.ValidationError(detail='存在正在处理的批量任务，请稍后重试')
-#
-#
-#     # 查看所有异步任务
-#     def check_future(request):
-#         data = global_process_pool.check_future()
-#         # return HttpResponse(status=status.HTTP_200_OK, content=json.dumps(data))
+def batch_thread(self):
+    global_process_pool.lock.acquire()  # TODO: 获取锁
+    try:
+        ...
+        global_process_pool.lock.release()
+    except Exception:
+        trace_log = traceback.format_exc()
+        logger.error('异步任务执行失败:\n %s' % trace_log)
+        global_process_pool.lock.release()  # TODO: 释放锁
+
+
+if __name__ == '__main__':
+
+    global_process_pool = ProcessPool()
+
+    # 提交一个异步任务
+    # future = global_thread_pool.executor.submit(batch_thread, project_id)
+    future = global_process_pool.executor.map(batch_thread, "project_id")  # 任务函数,任务id
+
+    global_process_pool.future_dict["project_id"] = future
+    # 检查异步任务
+    if global_process_pool.is_project_thread_running("project_id"):
+        raise exceptions.ValidationError(detail='存在正在处理的批量任务，请稍后重试')
+
+
+    # 查看所有异步任务
+    def check_future(request):
+        data = global_process_pool.check_future()
+        # return HttpResponse(status=status.HTTP_200_OK, content=json.dumps(data))
