@@ -521,8 +521,6 @@ def delete_project(request, pk):
     return JsonResponse(delete_project_data, status=200, safe=False)
 
 
-
-
 # TODO: get all project info
 @csrf_exempt
 def get_project(request):
@@ -668,6 +666,7 @@ def start_all_scan(request):
         return HttpResponse(status=404)
     return JsonResponse(CONFIG_FILE.CURRENT_PROJECT, status=200)
 
+
 # step 4、接受停止扫描状态
 @csrf_exempt
 def stop_scan(request):
@@ -741,10 +740,11 @@ def add_point_cloud(request):
         #     if item['id'] == CONFIG_FILE.CURRENT_PROJECT['point_cloud_id']:
         #         current_point_cloud = item
         # 轨迹点获取,从请求体中获取轨迹数据
-        track_point = str(current_point_cloud['id']) + ' ' + str(current_point_cloud['x']) + ' ' + str(current_point_cloud['y']) + ' ' + \
-                        str(current_point_cloud['z']) + ' ' + str(current_point_cloud['er']) + ' ' + str(
+        track_point = str(current_point_cloud['id']) + ' ' + str(current_point_cloud['x']) + ' ' + str(
+            current_point_cloud['y']) + ' ' + \
+                      str(current_point_cloud['z']) + ' ' + str(current_point_cloud['er']) + ' ' + str(
             current_point_cloud['ep']) + ' ' + \
-                        str(current_point_cloud['ey'])
+                      str(current_point_cloud['ey'])
 
         # # TODO: 轨迹点获取,从请求体中获取轨迹数据
         # track_point = str(track_dict['id']) + ' ' + str(track_dict['x']) + ' ' + str(track_dict['y']) + ' ' + \
@@ -755,7 +755,8 @@ def add_point_cloud(request):
         # os.path.exists('/GOSLAM/Downloads/GOSLAMTemp/0.pcd')
         # os.path.isfile('/GOSLAM/Downloads/GOSLAMTemp/0.pcd')
         # point_cloud_path = MEDIA_ROOT + "/pointCloud/" + str(track_dict['id']) + ".pcd"  # TODO: 点云原始文件文件夹,需要修改为配置变量
-        point_cloud_path = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + str(current_point_cloud['id']) + CONFIG_FILE.FILE_FORMAT  # TODO: 修改后的原始点云路径
+        point_cloud_path = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + str(
+            current_point_cloud['id']) + CONFIG_FILE.FILE_FORMAT  # TODO: 修改后的原始点云路径
         # print(point_cloud_path)
         cloud_url = '1'
         if os.path.isfile(point_cloud_path):  # 正式版本需要判断xyz后缀文件
@@ -770,7 +771,8 @@ def add_point_cloud(request):
                 point_cloud_name = str(current_point_cloud['id']) + CONFIG_FILE.FILE_FORMAT  # xyz TODO: ubuntu 下不需要重命名
             print('切割瓦片')
             # cloud_url = run_PotreeConverter_exe_tile(point_cloud_path, point_cloud_name)  # TODO: 瓦片切割程序，需要修改部分功能
-            thread_obj = global_thread_pool.executor.submit(run_PotreeConverter_exe_tile, point_cloud_path, point_cloud_name)
+            thread_obj = global_thread_pool.executor.submit(run_PotreeConverter_exe_tile, point_cloud_path,
+                                                            point_cloud_name)
             (only_file_name, ext) = os.path.splitext(point_cloud_name)
             cloud_url = '/GOSLAMtemp/' + only_file_name + "conver/cloud.js"
             if cloud_url is None:  # 如果cloud_url 为 None 说明切割瓦片失败
@@ -809,17 +811,20 @@ def add_point_cloud(request):
 def get_point_cloud(request, project_id):
     track_path = MEDIA_ROOT + "/track/trackPoint.txt"  # trackPoint.txt  transformations.txt
     current_id = int(project_id)
-    print('001')
     # if request == current_id:
-    if current_id == 999999:
-        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10)
-        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__lt=10)
-        # ProjectQueryset = Project.objects.filter(id=CONFIG_FILE.CURRENT_PROJECT.id)
-    else:
-        max_cloud_id = current_id + 9
-        PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id)
-        CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id,
-                                                         circle_point_end__lt=max_cloud_id)
+    try:
+        if current_id == 999999:
+            PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__lt=10)
+            CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__lt=10)
+            # ProjectQueryset = Project.objects.filter(id=CONFIG_FILE.CURRENT_PROJECT.id)
+        else:
+            max_cloud_id = current_id + 9
+            PointCloudQueryset = PointCloudChunk.objects.filter(cloud_id__gte=current_id, cloud_id__lt=max_cloud_id)
+            CirclePointQueryset = CirclePoint.objects.filter(circle_point_end__gte=current_id,
+                                                             circle_point_end__lt=max_cloud_id)
+    except PointCloudChunk.DoesNotExist or CirclePoint.DoesNotExist:
+        return HttpResponse({'message': '点云或回环点不存在'}, status=404)
+
     point_list = []
     for point_cloud_item in PointCloudQueryset:
         if current_id != 999999:  # 判断是否是初次请求或者刷新页面后的请求 point_cloud_item.project_id
@@ -876,7 +881,7 @@ def get_point_cloud(request, project_id):
             tract_data = json.loads(f.read())
             # f.write(tract_try)  # TODO: 轨迹点写入到了轨迹文件中，可能需要修改
             # f.write('\n')
-            f.close()       
+            f.close()
         test_list_point = {
             "track": tract_data,  # tract_data TRACT_DATA TRACT_DATA_SET
             "point": point_list,
@@ -1029,13 +1034,15 @@ def add_circle_point(request):
         # 写入回环点数据
         for circle_point_item in circle_point_dict['circle_point']:
             # print('打印回环点item=>:', circle_point_item)
-            circle_point_item_data = CirclePoint(
-                # circle_point_start=int(circle_point_item['start_track_index']),
-                # circle_point_end=int(circle_point_item['end_track_index']),
-                circle_point_start=int(circle_point_item[0]),
-                circle_point_end=int(circle_point_item[1]),
-            )
-            circle_point_item_data.save()
+            if circle_point_item[1] > CONFIG_FILE.CIRCLE_MAX_ID:
+                CONFIG_FILE.CIRCLE_MAX_ID = circle_point_item[1]
+                circle_point_item_data = CirclePoint(
+                    # circle_point_start=int(circle_point_item['start_track_index']),
+                    # circle_point_end=int(circle_point_item['end_track_index']),
+                    circle_point_start=int(circle_point_item[0]),
+                    circle_point_end=int(circle_point_item[1]),
+                )
+                circle_point_item_data.save()
         # 查询所有回环点数据
         # queryset2 = CirclePoint.objects.all()
         # circle_point_list = []

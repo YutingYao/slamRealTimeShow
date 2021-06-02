@@ -12,6 +12,7 @@ class ConfigFile:
         'system': 'Linux',  # Windows
         'version': 10  # 10 ;linux 16 20 ...
     }
+    CIRCLE_MAX_ID = 0
     CURRENT_PROJECT = {
         'project_name': '',  # 项目名称
         'point_cloud_id': 0,
@@ -60,3 +61,12 @@ class ConfigFile:
 
 
 CONFIG_FILE = ConfigFile()
+# video = ConfigFile()
+# print(video)
+# music = ConfigFile()
+# music2 = ConfigFile()
+# print(music)
+# print(music2)
+# music3 = ConfigFile()
+# print(music3)
+
