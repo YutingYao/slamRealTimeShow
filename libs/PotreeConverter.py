@@ -13,6 +13,9 @@ import logging
 from slamShow.settings import MEDIA_ROOT
 # from libs.globleConfig import CURRENT_PROJECT, POTREE_PATH, SOURCE_POINT_CLOUD_PATH
 from libs.globleConfig import CONFIG_FILE
+from pointCloud.models import PointCloudChunk
+from django.core.cache import cache
+
 logger = logging.getLogger(__name__)
 logger = logging.getLogger('django')
 complete_list = [1, 2, 3, 4, 5]
@@ -150,26 +153,18 @@ def test_run_PotreeConverter_exe(file_name):
 
 
 # TODO:根据文件路径，切割瓦片
-def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
+def run_PotreeConverter_exe_tile(original_file_path, original_file_name, current_id, project_id):
     (only_file_name, ext) = os.path.splitext(original_file_name)
-    # pts_out_src = MEDIA_ROOT + "/conver/" + only_file_name + "_conver"  # TODO: 瓦片存放文件夹，需要修改为对应地址
-    # pts_out_src = MEDIA_ROOT + "/tile/" + CONFIG_FILE.CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "_conver"  # TODO: 修改后的瓦片存放地址
     pts_out_src = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + only_file_name + "conver"  # TODO: 修改后的瓦片存放地址
     #  TODO: cmd 切割命令，需要修改为对应地址
-    # cmd_cut_xyz = r".\potree\windowsE57PotreeConverter\PotreeConverter.exe " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
     cmd_cut_xyz = CONFIG_FILE.POTREE_PATH + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
-    # clouds_path = '/media/conver/' + only_file_name + "_conver/"  # TODO: 拼接cloud.js时使用变量
-    clouds_path = '/media/tile/' + CONFIG_FILE.CURRENT_PROJECT['tile_name'] + '/' + only_file_name + "conver/"  # TODO: 修改后的
-    # print('打印完成cmd命令->', cmd_cut_xyz)
-    cut_process = subprocess.Popen(cmd_cut_xyz, shell=True)
+    # cut_process = subprocess.Popen(cmd_cut_xyz, shell=True)
     # ubuntu 下面命令
-    # cmdstrxyz = "/home/onrol/桌面/test/slamRealTimeShow/libs/linuxE57PotreeConverter/PotreeConverter " + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
-    # test_path = 'http://172.18.104.126:80/api/media/conver/' + only_file_name + "_conver/"
     # clouds_path = '/api/media/conver/' + only_file_name + "_conver/"
-    # cut_process = subprocess.Popen(cmdstrxyz, shell=True)
     try:
         print('start cut tile')
-        # wait02 = cut_process.communicate()  # wait(timeout=86400) communicate
+        cut_process = subprocess.Popen(cmd_cut_xyz, shell=True)
+        wait02 = cut_process.communicate()  # wait(timeout=86400) communicate
         # if wait02 != 0:
         #     # print("？？？？？？？？？？？wait02 != 0")
         #     return None
@@ -182,7 +177,35 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name):
         # print("？？？？？？？？？？？？===== process timeout 执行失败结束进程 ======")
         cut_process.kill()
         return None
-    return 'GOSLAMtemp/' + only_file_name + "conver/" + 'cloud.js'  # clouds_path  pts_out_src + '/cloud.js'
+
+    cloud_url = '/GOSLAMtemp/' + only_file_name + "conver/cloud.js"
+    # point_cloud_url = PointCloudChunk(
+    #     cloud_project='点云项目',
+    #     cloud_name='点云名称',
+    #     cloud_url=cloud_url,
+    #     cloud_id=current_id,
+    #     project_id=project_id
+    # )
+    # point_cloud_url.save()
+    point_cloud_list = cache.get('point_cloud')
+    point_cloud = {
+        cloud_id: current_id,
+        cloud_name: '点云名称',
+        cloud_url: cloud_url,
+        cloud_project: '点云项目',
+        project: project_id
+    }
+    if point_cloud_list is None:
+        point_cloud_list = [point_cloud]
+        # point_cloud_list.append(point_cloud)
+
+    else:
+        point_cloud_list.append(point_cloud)
+
+    cache.set('point_cloud', point_cloud_list)  # 设置缓存数据
+    # if os.path.isfile(cloud_url):  # 如果cloud_url 为 None 说明切割瓦片失败
+
+    # return 'GOSLAMtemp/' + only_file_name + "conver/" + 'cloud.js'  # clouds_path  pts_out_src + '/cloud.js'
 
 
 # 读取文件夹，获取文件夹内所有文件信息
@@ -312,6 +335,11 @@ def run_e572las_and_PotreeConverter_exe(list_src):
     cloud_js_path = run_PotreeConverter_exe(list_laz_path)
 
     return cloud_js_path
+
+
+def testCache():
+    cache.set('TRACK_DATA', '1111111', 60 * 15)
+
 
 
 if __name__ == '__main__':

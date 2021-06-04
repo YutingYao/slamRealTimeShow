@@ -1,6 +1,5 @@
 from slamShow.settings import BASE_DIR, MEDIA_ROOT
 
-
 class ConfigFile:
     __instance = None
     __flag = False
@@ -13,6 +12,7 @@ class ConfigFile:
         'version': 10  # 10 ;linux 16 20 ...
     }
     CIRCLE_MAX_ID = 0
+    CIRCLE_DATA = []
     CURRENT_PROJECT = {
         'project_name': '',  # 项目名称
         'point_cloud_id': 0,
@@ -60,6 +60,9 @@ class ConfigFile:
             ConfigFile.__flag = True
 
 
+
+
+
 CONFIG_FILE = ConfigFile()
 # video = ConfigFile()
 # print(video)
@@ -69,4 +72,3 @@ CONFIG_FILE = ConfigFile()
 # print(music2)
 # music3 = ConfigFile()
 # print(music3)
-
