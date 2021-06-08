@@ -189,19 +189,17 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name, current
     # point_cloud_url.save()
     point_cloud_list = cache.get('point_cloud')
     point_cloud = {
-        cloud_id: current_id,
-        cloud_name: '点云名称',
-        cloud_url: cloud_url,
-        cloud_project: '点云项目',
-        project: project_id
+        'cloud_id': current_id,
+        'cloud_name': '点云名称',
+        'cloud_url': cloud_url,
+        'cloud_project': '点云项目',
+        'project': project_id
     }
-    if point_cloud_list is None:
-        point_cloud_list = [point_cloud]
-        # point_cloud_list.append(point_cloud)
-
-    else:
+    print('write point--', point_cloud)
+    if point_cloud_list is not None:
         point_cloud_list.append(point_cloud)
-
+    else:
+        point_cloud_list = [point_cloud]
     cache.set('point_cloud', point_cloud_list)  # 设置缓存数据
     # if os.path.isfile(cloud_url):  # 如果cloud_url 为 None 说明切割瓦片失败
 

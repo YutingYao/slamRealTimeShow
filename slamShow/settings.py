@@ -16,7 +16,7 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 # BASE_DIR = Path(__file__).resolve().parent.parent
-from libs.ProcessPool import ProcessPool, initData
+from libs.ProcessPool import ProcessPool
 from libs.ThreadPool import ThreadPool
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -67,9 +67,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     # 'corsheaders.middleware.CorsMiddleware',
-    # 'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.cache.FetchFromCacheMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -117,10 +115,6 @@ global_process_pool = ProcessPool()
 
 global_thread_pool = ThreadPool()
 
-# TODO：创建全局配置参数--单例模式
-# global_config_file = ConfigFile()
-delete_data = initData(MEDIA_ROOT)
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -155,38 +149,20 @@ DATABASES = {
     },
 }
 
-# cache django.core.cache.caches  'django.core.cache.backends.memcached.PyMemcacheCache'
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCach',
-#         'LOCATION': '127.0.0.1:11211',
-#         'TIMEOUT': None
-#     }
-# }
+# sudo pip3 install python3-memcached unix:/tmp/memcached.sock
 # CACHES = {
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-#         'LOCATION': '127.0.0.1:11211',  # 可以为远程地址和端口，可以设置多个ip
-#         'TIMEOUT': 86400,  # 1 day,设置成0缓存将失效
-#         # 'OPTIONS': {
-#         #     'MAX_ENTRIES': 1000,  # 高速缓存允许的最大条目数，超出这个数则旧值将被删除. 这个参数默认是300.
-#         #     'CULL_FREQUENCY': 3,  # 当达到MAX_ENTRIES 的时候,被删除的条目比率。 实际比率是 1 / CULL_FREQUENCY，默认是3
-#         # }
+#         'LOCATION': '127.0.0.1:11211',
 #     }
 # }
 
-# sudo pip3 install python3-memcached
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-#         'LOCATION': 'unix:/tmp/memcached.sock',
-#     }
-# }
 
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'unique-snowflake',
+        'TIMEOUT': None
     }
 }
 

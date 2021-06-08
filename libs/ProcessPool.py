@@ -8,8 +8,6 @@
 # -*- coding: utf-8 -*-
 import threading
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-# from pointCloud.models import PointCloudChunk
-
 from django.test import TestCase
 
 #   Create your tests here.
@@ -89,16 +87,3 @@ class ProcessPool(object):
 #         data = global_process_pool.check_future()
 #         # return HttpResponse(status=status.HTTP_200_OK, content=json.dumps(data))
 
-
-def initData(media_root):
-    # point_cloud = PointCloudChunk.objects.all()
-    # point_cloud.delete()
-    # PointCloudChunk.objects.all().delete
-    track_path = media_root + "/track/trackPoint.txt"
-    circle_path = media_root + "/track/circlePoint.txt"
-
-    with open(track_path, 'r+', encoding='utf-8') as f:
-        f.truncate()
-    with open(circle_path, 'r+', encoding='utf-8') as f:
-        f.truncate()
-    print('执行初始化操作')

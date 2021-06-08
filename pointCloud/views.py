@@ -14,7 +14,6 @@ from libs.PotreeConverter import test_read_point_cloud_dir, test_run_PotreeConve
 #     FILE_FORMAT, TRACT_DATA
 from libs.globleConfig import CONFIG_FILE
 from libs.utils import set_scan_parameter
-from libs.testCache import cache2
 from pointCloud.models import BookInfo, PointCloudChunk, CirclePoint, Project
 from slamShow.settings import MEDIA_ROOT, global_thread_pool, TRACT_DATA_SET
 from django.core.cache import cache
@@ -643,29 +642,11 @@ def start_all_scan(request):
     路由： get /scan_init/
     """
     try:
-        print('开始扫描，进行扫描初始化')
-        # pcd_path = MEDIA_ROOT + "/pointCloud"
-        # tile_path = MEDIA_ROOT + "/tile"  # conver tile
-        track_path = MEDIA_ROOT + "/track/trackPoint.txt"
-        # shutil.rmtree(pcd_path)
-        # shutil.rmtree(tile_path)
-        with open(track_path, 'a+', encoding='utf-8') as f:
-            f.truncate(0)
-        # # sleep(1)
-        # os.mkdir(pcd_path)
-        # os.mkdir(tile_path)
-        # TODO: 删除所有点云数据
-        point_cloud = PointCloudChunk.objects.all()
-        point_cloud.delete()
-        # TODO: 删除所有项目
-        project = Project.objects.all()
-        project.delete()
-        # TODO: 删除所有回环点数据
-        circle_point = CirclePoint.objects.all()
-        circle_point.delete()
+        clear_list = {'CIRCLE_DATA': [], 'TRACT_DATA': [], 'point_cloud': []}
+        cache.set_many(clear_list)
 
-    except PointCloudChunk.DoesNotExist:
-        return HttpResponse(status=404)
+    except:
+        return HttpResponse({'message': 'cache clear failed'}, status=404)
     return JsonResponse(CONFIG_FILE.CURRENT_PROJECT, status=200)
 
 
@@ -814,14 +795,17 @@ def get_point_cloud_copy(request, project_id):
 
 # step 3、获取瓦片url
 @csrf_exempt
-def get_point_cloud(request, project_id):
+def get_point_cloud(request):
     circle_list = cache.get('CIRCLE_DATA')
     track_list = cache.get('TRACT_DATA')
     point_list = cache.get('point_cloud')
-
+    # print('point_list--', boolean(point_list))
+    print('point_list--', point_list)
     if point_list:  # 需要返回点云
         if circle_list is None:
             circle_list = []
+        if track_list is None:
+            track_list = []
         point_cloud_list = {
             "track": track_list,  # tract_data CONFIG_FILE.TRACT_DATA
             "point": point_list,
@@ -1030,21 +1014,19 @@ def get_status(request):
 # @cache_page(60 * 15)
 @csrf_exempt
 def test_data(request):
-    abc = [1, 2, 3, 4]
-    bc = [
-        {
-            'a': 1,
-            'b': 2
-        },
-        {
-            'a': 1,
-            'b': 2
-        }
-    ]
-    cache.set('key1', abc, 60 * 15)  # , 'value123456'
-    cache.set('key2', bc, 60*15)  # , 'value123456'
+    abc = '中国'
+    cache.set('key1', abc, 60*15)  # , 'value123456'
     a = cache.get('key1')
     a2 = cache.get('key2')
+    tract = cache.get('TRACT_DATA')
+    circle = cache.get('CIRCLE_DATA')
+    point = cache.get('point_cloud')
+    aabb = {
+        "tract_data": tract,
+        "circle_data": circle,
+        "point_data": point,
+        "a12": a
+    }
     print(a)
     print(a2)
-    return JsonResponse(CONFIG_FILE.TRACT_DATA, status=200, safe=False)
+    return JsonResponse(aabb, status=200, safe=False)

@@ -116,7 +116,7 @@ class CirclePoint(models.Model):
     存储每一帧点云数据
     """
     # table_name = models.CharField(max_length=35, null=True, blank=True, verbose_name=u"帧点云数据表名")
-    circle_point_id = models.IntegerField(default=0, verbose_name=u"回环点id")
+    circle_point_id = models.AutoField(verbose_name=u"回环点id", primary_key=True)
     # circle_point_start = models.IntegerField(default=0, verbose_name=u"开始回环点")
     # circle_point_end = models.IntegerField(default=0, verbose_name=u"结束回环点")
     circle_point_start = models.IntegerField(default=0, null=True, blank=True, verbose_name=u"开始回环点")

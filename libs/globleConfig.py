@@ -1,18 +1,20 @@
 from slamShow.settings import BASE_DIR, MEDIA_ROOT
 
+
 class ConfigFile:
     __instance = None
     __flag = False
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     TRACT_PATH = '/GOSLAM/Downloads/GOSLAMtemp/trackPoint.txt'  # TODO: track point file path
     TRACT_DATA = []
+    CIRCLE_DATA = []
     FILE_FORMAT = '_.pcd'
     PLATFORM_INFO = {
         'system': 'Linux',  # Windows
         'version': 10  # 10 ;linux 16 20 ...
     }
     CIRCLE_MAX_ID = 0
-    CIRCLE_DATA = []
+    CIRCLE_ID = 0 
     CURRENT_PROJECT = {
         'project_name': '',  # 项目名称
         'point_cloud_id': 0,
@@ -46,6 +48,16 @@ class ConfigFile:
     activeProject = ''
 
     scanStatus = 'notStart'  # scan status noStart pending end
+    from pointCloud.models import PointCloudChunk
+    point_cloud = PointCloudChunk.objects.all().delete()
+    track_path = MEDIA_ROOT + "/track/trackPoint.txt"
+    circle_path = MEDIA_ROOT + "/track/circlePoint.txt"
+
+    with open(track_path, 'r+', encoding='utf-8') as f:
+        f.truncate()
+    with open(circle_path, 'r+', encoding='utf-8') as f:
+        f.truncate()
+    print('执行初始化操作')
 
     def __new__(cls, *args, **kwargs):
         print('new 执行了')
@@ -61,14 +73,5 @@ class ConfigFile:
 
 
 
-
-
 CONFIG_FILE = ConfigFile()
-# video = ConfigFile()
-# print(video)
-# music = ConfigFile()
-# music2 = ConfigFile()
-# print(music)
-# print(music2)
-# music3 = ConfigFile()
-# print(music3)
+
