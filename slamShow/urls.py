@@ -13,15 +13,6 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# from django.contrib import admin
-# from django.urls import path
-#
-#
-#
-#
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-# ]
 
 
 from django.conf.urls import url, include
@@ -32,33 +23,17 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import pointCloud.url  # 先导入应用的urls模块
 from pointCloud import views
 from slamShow import settings
-# startScan   开始扫描
-# stopScan    停止扫描
-# point_cloud 点云切割为瓦片，路径url添加到数据库
-# point_cloud/id/ 获取瓦片点云路径url、id等数据
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    # url(r'^users/', include('users.urls')),
-    # url(r'^testPoint/', include((pointCloud.url, 'pointCloud'), namespace='pointCloud')),  # 添加应用的路由
-    # url(r'^books/$', views.BooksAPIVIew.as_view()),
-    url(r'^api/pointCloudBlank/$', views.point_delete),
-    # url(r'^api/books_all/$', views.point_get),point_cloud
-    url(r'^api/status/$', views.get_status),
-    url(r'^api/project/$', views.create_project),
-    url(r'^api/projects/$', views.get_project),
-    url(r'^api/mproject/(?P<pk>\d+)/$', views.delete_project),
-    url(r'^api/max_project/$', views.get_max_id_project),
-    url(r'^api/pointClouds/(?P<pk>\d+)/$', views.PointAPIVIew.as_view()),
-    url(r'^api/startScan/$', views.start_all_scan),
-    url(r'^api/startAllScan/$', views.start_scan),
+    url(r'^api/startScan/$', views.start_scan),
     url(r'^api/stopScan/$', views.stop_scan),
     url(r'^api/point_cloud/$', views.add_point_cloud),
-    # url(r'^api/point_cloud/(?P<project_id>\d+)/$', views.get_point_cloud),
-    url(r'^api/all_point_cloud/$', views.get_point_cloud),
-    url(r'^api/single_point_cloud/(?P<pk>\d+)/$', views.get_single_point_cloud),
     url(r'^api/circle_point/$', views.add_circle_point),
+    url(r'^api/all_point_cloud/$', views.get_point_cloud),
     url(r'^api/scan_param/$', views.scan_param),
     url(r'^api/test/$', views.test_data),
 ]
+# point_cloud/id/ 获取瓦片点云路径url、id等数据
 urlpatterns += static('api' + settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()  # 设置静态文件 部署到服务器静态文件不这样设置

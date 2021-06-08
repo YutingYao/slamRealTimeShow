@@ -1,4 +1,5 @@
 from slamShow.settings import BASE_DIR, MEDIA_ROOT
+from django.core.cache import cache
 
 
 class ConfigFile:
@@ -6,6 +7,7 @@ class ConfigFile:
     __flag = False
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     TRACT_PATH = '/GOSLAM/Downloads/GOSLAMtemp/trackPoint.txt'  # TODO: track point file path
+    POTREE_PATH = BASE_DIR + '/libs/PotreeUbuntu20Potree/PotreeConverter '
     TRACT_DATA = []
     CIRCLE_DATA = []
     FILE_FORMAT = '_.pcd'
@@ -13,8 +15,6 @@ class ConfigFile:
         'system': 'Linux',  # Windows
         'version': 10  # 10 ;linux 16 20 ...
     }
-    CIRCLE_MAX_ID = 0
-    CIRCLE_ID = 0 
     CURRENT_PROJECT = {
         'project_name': '',  # 项目名称
         'point_cloud_id': 0,
@@ -38,25 +38,17 @@ class ConfigFile:
         'sample_true': '9',  # 保存采样数据
         'sample_false': '10'  # 不保存采样数据
     }
-    cache.set('stop', 'false')
-    # PotreeUbuntu20Potree
-    POTREE_PATH = BASE_DIR + '/libs/PotreeUbuntu20Potree/PotreeConverter '
-    SET_SCAN_PARAMETER = {
-
-    }
-    # 1、创建扫描文件夹，没有扫描，下次开机时，初始化为没有扫描文件夹
-    # 2、后台确定扫描是调用start_scan接口，不调用就是没有开始扫描
-    activeProject = ''
-    scanStatus = 'notStart'  # scan status noStart pending end
-    from pointCloud.models import PointCloudChunk
-    point_cloud = PointCloudChunk.objects.all().delete()
-    track_path = MEDIA_ROOT + "/track/trackPoint.txt"
-    circle_path = MEDIA_ROOT + "/track/circlePoint.txt"
-
-    with open(track_path, 'r+', encoding='utf-8') as f:
-        f.truncate()
-    with open(circle_path, 'r+', encoding='utf-8') as f:
-        f.truncate()
+    initList = {'CIRCLE_DATA': [], 'TRACT_DATA': [], 'point_cloud': [], 'stop': 'False'}
+    cache.set_many(initList)
+    # from pointCloud.models import PointCloudChunk
+    # point_cloud = PointCloudChunk.objects.all().delete()
+    # track_path = MEDIA_ROOT + "/track/trackPoint.txt"
+    # circle_path = MEDIA_ROOT + "/track/circlePoint.txt"
+    #
+    # with open(track_path, 'r+', encoding='utf-8') as f:
+    #     f.truncate()
+    # with open(circle_path, 'r+', encoding='utf-8') as f:
+    #     f.truncate()
     print('执行初始化操作')
 
     def __new__(cls, *args, **kwargs):
@@ -72,6 +64,4 @@ class ConfigFile:
             ConfigFile.__flag = True
 
 
-
 CONFIG_FILE = ConfigFile()
-
