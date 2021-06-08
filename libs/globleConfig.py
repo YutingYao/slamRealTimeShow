@@ -38,6 +38,7 @@ class ConfigFile:
         'sample_true': '9',  # 保存采样数据
         'sample_false': '10'  # 不保存采样数据
     }
+    cache.set('stop', 'false')
     # PotreeUbuntu20Potree
     POTREE_PATH = BASE_DIR + '/libs/PotreeUbuntu20Potree/PotreeConverter '
     SET_SCAN_PARAMETER = {
@@ -46,7 +47,6 @@ class ConfigFile:
     # 1、创建扫描文件夹，没有扫描，下次开机时，初始化为没有扫描文件夹
     # 2、后台确定扫描是调用start_scan接口，不调用就是没有开始扫描
     activeProject = ''
-
     scanStatus = 'notStart'  # scan status noStart pending end
     from pointCloud.models import PointCloudChunk
     point_cloud = PointCloudChunk.objects.all().delete()

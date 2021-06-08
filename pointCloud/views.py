@@ -642,7 +642,7 @@ def start_all_scan(request):
     路由： get /scan_init/
     """
     try:
-        clear_list = {'CIRCLE_DATA': [], 'TRACT_DATA': [], 'point_cloud': []}
+        clear_list = {'CIRCLE_DATA': [], 'TRACT_DATA': [], 'point_cloud': [], 'stop': 'False'}
         cache.set_many(clear_list)
 
     except:
@@ -662,10 +662,11 @@ def stop_scan(request):
         # print("book")
         # for item in point_list:
         #     print('点云=>:', item)
-        CONFIG_FILE.CURRENT_PROJECT['status'] = 'stop'
-        delete_info = Project.objects.get(id=CONFIG_FILE.CURRENT_PROJECT['project_id'])
-        delete_info.status = 'stop'
-        delete_info.save()
+        # CONFIG_FILE.CURRENT_PROJECT['status'] = 'stop'
+        # delete_info = Project.objects.get(id=CONFIG_FILE.CURRENT_PROJECT['project_id'])
+        # delete_info.status = 'stop'
+        # delete_info.save()
+        cache.set('stop', 'True')
         print('停止扫描，停止数据请求操作，修改变量')
         # pool = ProcessPoolExecutor(3)
         # sources_file = "D:/test/test_move/abc.zip"
