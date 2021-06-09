@@ -15,24 +15,29 @@ Including another URLconf
 """
 
 
-from django.conf.urls import url, include
+from django.urls import path, include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from rest_framework import routers
 
 import pointCloud.url  # 先导入应用的urls模块
 from pointCloud import views
 from slamShow import settings
+from pointCloud.views import PointCloudViewSet
 
+router = routers.DefaultRouter()
+router.register(r'point_cloud_test', PointCloudViewSet, basename='scene')  # TODO: 任意用户查、 所属用户与管理用户，增删改查
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^api/startScan/$', views.start_scan),
-    url(r'^api/stopScan/$', views.stop_scan),
-    url(r'^api/point_cloud/$', views.add_point_cloud),
-    url(r'^api/circle_point/$', views.add_circle_point),
-    url(r'^api/all_point_cloud/$', views.get_point_cloud),
-    url(r'^api/scan_param/$', views.scan_param),
-    url(r'^api/test/$', views.test_data),
+    path(r'api/', include(router.urls)),
+    path(r'admin/', admin.site.urls),
+    path(r'api/startScan/', views.start_scan),
+    path(r'api/stopScan/', views.stop_scan),
+    path(r'api/point_cloud/', views.add_point_cloud),
+    path(r'api/all_point_cloud/', views.get_point_cloud),
+    path(r'api/circle_point/', views.add_circle_point),
+    path(r'api/scan_param/', views.scan_param),
+    path(r'api/test/', views.test_data),
 ]
 # point_cloud/id/ 获取瓦片点云路径url、id等数据
 urlpatterns += static('api' + settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

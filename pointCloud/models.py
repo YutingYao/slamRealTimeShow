@@ -9,6 +9,7 @@ class PointCloudChunk(models.Model):
     """
     # table_name = models.CharField(max_length=35, null=True, blank=True, verbose_name=u"帧点云数据表名")
     # models.IntegerField(default=0, verbose_name=u"获取OSS下载连接的次数统计")
+    # id = models.AutoField(verbose_name=u"帧点云id")
     cloud_id = models.IntegerField(default=0, verbose_name=u"帧点云编号")
     cloud_name = models.CharField(max_length=25, null=True, blank=True, verbose_name=u"帧点云名称")
     cloud_url = models.CharField(max_length=100, null=True, blank=True, verbose_name=u"帧点云url")
