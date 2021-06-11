@@ -65,3 +65,33 @@ class CirclePoint(models.Model):
     # 重载__str__方法使后台不再直接显示object
     def __str__(self):
         return self.circle_point_id
+
+
+# 点云轨迹回环点索引
+class ScanProject(models.Model):
+    """
+    存储每一帧点云数据
+    """
+    name = models.CharField(max_length=35, null=True, blank=True, verbose_name=u"扫描项目")
+    corner_map = models.CharField(max_length=80, null=True, blank=True, verbose_name=u"corner map url")
+    global_cloud_all = models.CharField(max_length=80, null=True, blank=True, verbose_name=u"global cloud all url")
+    global_map = models.CharField(max_length=80, null=True, blank=True, verbose_name=u"global map url")
+    transformations = models.CharField(max_length=80, null=True, blank=True, verbose_name=u"transformations url")
+    tile_item = models.CharField(max_length=80, null=True, blank=True, verbose_name=u"tile item url")
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="是否激活",
+        help_text="是否激活",
+    )
+    add_time = models.DateTimeField(default=timezone.now, verbose_name=u"添加时间")
+
+
+    class Meta:
+        db_table = 'tb_scan_project'
+        verbose_name = u"扫描数据"
+        verbose_name_plural = verbose_name
+
+    # 重载__str__方法使后台不再直接显示object
+    def __str__(self):
+        return self.circle_point_id
+

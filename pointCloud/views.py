@@ -1,5 +1,7 @@
 import os
-
+import json
+import time
+import shutil
 from django.db.models import Max
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
@@ -11,7 +13,7 @@ from django.utils.decorators import method_decorator
 from libs.PotreeConverter import run_PotreeConverter_exe_tile
 from libs.globleConfig import CONFIG_FILE
 from libs.utils import set_scan_parameter
-from pointCloud.models import PointCloudChunk, CirclePoint
+from pointCloud.models import PointCloudChunk, CirclePoint, ScanProject
 from slamShow.settings import MEDIA_ROOT, global_thread_pool, TRACT_DATA_SET
 from rest_framework import mixins, viewsets, permissions, generics
 from rest_framework.pagination import PageNumberPagination
@@ -21,13 +23,10 @@ from rest_framework.settings import api_settings
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import filters
 from django.core.cache import cache
-import json
-import time
-import shutil
 from time import sleep
 from pointCloud import serializers
 from concurrent.futures import ProcessPoolExecutor
-from pointCloud.serializers import PointCloudChunkSerializer
+from pointCloud.serializers import PointCloudChunkSerializer, ScanProjectSerializer
 
 
 # TODO: 下面是所有接口
@@ -163,6 +162,43 @@ def stop_scan(request):
         return HttpResponse(status=202)
 
     return HttpResponse(status=200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')  # 关闭 csrf 防护
+class ScanProjectViewSet(mixins.CreateModelMixin,
+                         mixins.RetrieveModelMixin,
+                         mixins.UpdateModelMixin,
+                         # mixins.DestroyModelMixin,
+                         mixins.ListModelMixin,
+                         GenericViewSet):
+    serializer_class = ScanProjectSerializer  # 序列化类
+    # queryset = ScanProject.objects.all()
+    queryset = ScanProject.objects.filter(is_active=True).order_by('-id')
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            # 这里分成一个  个人列表的
+            print('list')
+            return serializers.ScanProjectListSerializer
+        if self.action == 'partial_update' or self.action == 'update':
+            # TODO: 判断是否是管理员 与自身用户
+            print('update')
+            return serializers.ScanProjectUpdateSerializer
+        if self.action == "create":
+            # TODO: 判断是否登录,与权限限制
+            print('create')
+            return serializers.ScanProjectUpdateSerializer
+        if self.action == "retrieve":
+            #  TODO: 判断是否登录
+            print('retrieve')
+            return serializers.ScanProjectRetrieveSerializer
+        return "未匹配上"  # I dont' know what you want for create/destroy/update.
+
+    def get_queryset(self):
+        qs = super().get_queryset()  # 调用父类方法
+        return qs
+
+    pass
 
 
 # @csrf_exempt

@@ -24,10 +24,11 @@ from rest_framework import routers
 import pointCloud.url  # 先导入应用的urls模块
 from pointCloud import views
 from slamShow import settings
-from pointCloud.views import PointCloudViewSet
+from pointCloud.views import PointCloudViewSet, ScanProjectViewSet
 
 router = routers.DefaultRouter()
 router.register(r'point_cloud_test', PointCloudViewSet, basename='scene')  # TODO: 任意用户查、 所属用户与管理用户，增删改查
+router.register(r'scan_project', ScanProjectViewSet, basename='scan')  # TODO: 任意用户查、 所属用户与管理用户，增删改查
 urlpatterns = [
     path(r'api/', include(router.urls)),
     path(r'admin/', admin.site.urls),
