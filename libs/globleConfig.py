@@ -8,6 +8,8 @@ class ConfigFile:
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     TRACT_PATH = '/GOSLAM/Downloads/GOSLAMtemp/trackPoint.txt'  # TODO: track point file path
     POTREE_PATH = BASE_DIR + '/libs/PotreeUbuntu20Potree/PotreeConverter '
+    DOWNLOAD_PATH = '/GOSLAM/Downloads/GOSLAM/'  #  后面 + 项目文件夹名称 + 文件具体名称
+    DOWNLOAD_PATH_TEST = 'D:/test/20210415/'
     TRACT_DATA = []
     CIRCLE_DATA = []
     FILE_FORMAT = '_.pcd'

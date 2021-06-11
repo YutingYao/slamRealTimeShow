@@ -147,6 +147,11 @@ def scan_param(request):
         return JsonResponse(status=202)
 
 
+@csrf_exempt
+def download_file(request):
+    pass
+
+
 # step 4、接受停止扫描状态
 @csrf_exempt
 def stop_scan(request):
@@ -178,19 +183,15 @@ class ScanProjectViewSet(mixins.CreateModelMixin,
     def get_serializer_class(self):
         if self.action == 'list':
             # 这里分成一个  个人列表的
-            print('list')
             return serializers.ScanProjectListSerializer
         if self.action == 'partial_update' or self.action == 'update':
             # TODO: 判断是否是管理员 与自身用户
-            print('update')
             return serializers.ScanProjectUpdateSerializer
         if self.action == "create":
             # TODO: 判断是否登录,与权限限制
-            print('create')
             return serializers.ScanProjectUpdateSerializer
         if self.action == "retrieve":
             #  TODO: 判断是否登录
-            print('retrieve')
             return serializers.ScanProjectRetrieveSerializer
         return "未匹配上"  # I dont' know what you want for create/destroy/update.
 
@@ -239,15 +240,54 @@ class PointCloudViewSet(mixins.CreateModelMixin,
     pass
 
 
+@csrf_exempt
+def download_file(request):
+    pass
+
+
 # 测试数据
 @csrf_exempt
-def test_data(request):
-    tract = cache.get('TRACT_DATA')
-    circle = cache.get('CIRCLE_DATA')
-    point = cache.get('point_cloud')
-    testData = {
-        "tract_data": tract,
-        "circle_data": circle,
-        "point_data": point,
-    }
-    return JsonResponse(testData, status=200, safe=False)
+def get_project(request):
+    # tract = cache.get('TRACT_DATA')
+    # circle = cache.get('CIRCLE_DATA')
+    # point = cache.get('point_cloud')
+    project_dir = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST)  # 获取文件
+    # print(project_list)
+    project_list = []
+    for item in project_dir:
+        if item == 'delete':
+            continue
+        item_file = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST + item)  # 获取文件
+        if len(item_file) > 0:
+            pass
+        # 计算item内所有文件夹
+        cloud_file = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/item/')  # 获取文件
+        point_cloud_num = len(cloud_file)
+
+        create_time = os.path.getmtime(CONFIG_FILE.DOWNLOAD_PATH_TEST + item)
+        time_local = time.localtime(create_time / 1000)
+        print('创建时间--', create_time)
+        ct = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+        item_data = {
+            'name': item,
+            'project_path': CONFIG_FILE.DOWNLOAD_PATH_TEST + item,
+            'down_file': item_file,
+            'cloud_path': CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/item/',
+            'cloud_num': point_cloud_num,
+            'create_time': ct
+        }
+        project_list.append(item_data)
+
+    return JsonResponse(project_list, status=200, safe=False)
+
+
+@csrf_exempt
+def modify_project(request):
+    json_bytes = request.body
+    modify_dict = json.loads(json_bytes)
+    result = shutil.rmtree(CONFIG_FILE.DOWNLOAD_PATH_TEST + modify_dict['path'])  # TODO: 删除目录及目录
+    is_exists = os.path.exists(CONFIG_FILE.DOWNLOAD_PATH_TEST + modify_dict['path'])
+    if is_exists:
+        return JsonResponse({'message': '删除失败'}, status=202, safe=False)
+    else:
+        return JsonResponse({'message': 'OK'}, status=200, safe=False)
