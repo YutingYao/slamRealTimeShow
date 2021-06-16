@@ -258,7 +258,11 @@ def get_project(request):
         if item == 'delete':
             continue
         item_file = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST + item)  # 获取文件
+        down_list = []
         if len(item_file) > 0:
+            for item_name in item_file:
+                item_name = CONFIG_FILE.BROWSE_PATH + item + '/' + item_name
+                down_list.append(item_name)
             pass
         # 计算item内所有文件夹
         cloud_file = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/item/')  # 获取文件
@@ -267,14 +271,31 @@ def get_project(request):
         create_time = os.path.getmtime(CONFIG_FILE.DOWNLOAD_PATH_TEST + item)
         time_local = time.localtime(create_time / 1000)
         print('创建时间--', create_time)
-        ct = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+        create_time = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+        track_point = []
+        if 'transformations.pcd' in item_file:
+
+            with open(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/transformations.pcd', "r") as f:
+                for line in f.readlines():
+                    line = line.strip('\n')  # 去掉列表中每一个元素的换行符
+                    line = line.split()
+                    # track_point = line[11:]
+                    track_point.append(line)
+                    # table = [int(i) for i in line[11:]]
+                    # print(table)
+
+            track_point = track_point[11:]
+            print(track_point)
+            pass
         item_data = {
             'name': item,
-            'project_path': CONFIG_FILE.DOWNLOAD_PATH_TEST + item,
-            'down_file': item_file,
-            'cloud_path': CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/item/',
+            'project_path': CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/',
+            'down_file': down_list,
+            'cloud_path': CONFIG_FILE.BROWSE_PATH + item + '/item/',
             'cloud_num': point_cloud_num,
-            'create_time': ct
+            'create_time': create_time,
+            'track': track_point,
+            'browse': CONFIG_FILE.BROWSE_PATH
         }
         project_list.append(item_data)
 
