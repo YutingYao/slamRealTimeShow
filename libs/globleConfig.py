@@ -11,6 +11,7 @@ class ConfigFile:
     DOWNLOAD_PATH = '/GOSLAM/Downloads/GOSLAM/'  #  后面 + 项目文件夹名称 + 文件具体名称
     DOWNLOAD_PATH_TEST = 'D:/test/20210415/'
     BROWSE_PATH = '/Browse/'
+    TILE_PATH = '/GOSLAM/Downloads/TILE'
     TRACT_DATA = []
     CIRCLE_DATA = []
     FILE_FORMAT = '_.pcd'
