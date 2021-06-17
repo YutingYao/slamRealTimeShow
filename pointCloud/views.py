@@ -274,19 +274,31 @@ def get_project(request):
         create_time = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
         track_point = []
         if 'transformations.pcd' in item_file:
-
             with open(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/transformations.pcd', "r") as f:
-                for line in f.readlines():
+                readLinesFilter = f.readlines()[11:]
+                for line in readLinesFilter:
                     line = line.strip('\n')  # 去掉列表中每一个元素的换行符
                     line = line.split()
                     # track_point = line[11:]
-                    track_point.append(line)
+                    lineDict = {
+                        'id': int(line[3]),
+                        'x': int(line[0]),
+                        'y': int(line[1]),
+                        'z': int(line[2]),
+                        'er': int(line[4]),
+                        'ep': int(line[5]),
+                        'ey': int(line[6]),
+                    }
+
+                    track_point.append(lineDict)
                     # table = [int(i) for i in line[11:]]
                     # print(table)
 
-            track_point = track_point[11:]
-            print(track_point)
-            pass
+            # track_point = track_point[11:]
+            # print(track_point)
+        track_json = {}
+        if os.path.isfile(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/download.json'):
+            track_json = json.load(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/download.json')
         item_data = {
             'name': item,
             'project_path': CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/',
@@ -295,7 +307,8 @@ def get_project(request):
             'cloud_num': point_cloud_num,
             'create_time': create_time,
             'track': track_point,
-            'browse': CONFIG_FILE.BROWSE_PATH
+            'browse': CONFIG_FILE.BROWSE_PATH,
+            'track_json': track_json
         }
         project_list.append(item_data)
 

@@ -25,7 +25,8 @@ complete_load_index = -1
 # TODO:根据文件路径，切割瓦片
 def run_PotreeConverter_exe_tile(original_file_path, original_file_name, current_id, project_id):
     (only_file_name, ext) = os.path.splitext(original_file_name)
-    pts_out_src = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + only_file_name + "conver"  # TODO: 修改后的瓦片存放地址
+    # pts_out_src = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + only_file_name + "conver"  # TODO: 以前瓦片存放文件夹
+    pts_out_src = CONFIG_FILE.TILE_PATH + only_file_name + "conver"  # TODO: 修改单独文件夹存放瓦片数据
     #  TODO: cmd 切割命令，需要修改为对应地址
     cmd_cut_xyz = CONFIG_FILE.POTREE_PATH + original_file_path + " -f xyzi" + " -o " + pts_out_src + " --overwrite"
     try:
