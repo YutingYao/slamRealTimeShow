@@ -13,6 +13,8 @@ from django.utils.decorators import method_decorator
 from libs.PotreeConverter import run_PotreeConverter_exe_tile
 from libs.globleConfig import CONFIG_FILE
 from libs.utils import set_scan_parameter
+from libs.WebSocket import send_message
+from libs.scanParams import set_modify_params, perform_cmd
 from pointCloud.models import PointCloudChunk, CirclePoint, ScanProject
 from slamShow.settings import MEDIA_ROOT, global_thread_pool, TRACT_DATA_SET
 from rest_framework import mixins, viewsets, permissions, generics
@@ -27,12 +29,13 @@ from time import sleep
 from pointCloud import serializers
 from concurrent.futures import ProcessPoolExecutor
 from pointCloud.serializers import PointCloudChunkSerializer, ScanProjectSerializer
+from rest_framework import views
 
 
 # TODO: 下面是所有接口
 # step 1、start scan, check is has folder for save scan data, modify scan status,
 @csrf_exempt
-def start_scan(request):
+def start_scan2(request):
     """
     开始扫描
     路由： get /scan_init/
@@ -40,6 +43,7 @@ def start_scan(request):
     try:
         clear_list = {'CIRCLE_DATA': [], 'TRACT_DATA': [], 'point_cloud': [], 'stop': 'False'}
         cache.set_many(clear_list)
+        CONFIG_FILE.SCAN_STATUS = 'pending'  # TODO: 修改扫描状态
 
     except Exception as e:
         return HttpResponse({'message': 'cache clear failed'}, status=202)
@@ -58,10 +62,16 @@ def add_point_cloud(request):
         track_dict = json.loads(json_bytes)
         #  TODO: 根据data列表最后元素id切割数据
         current_point_cloud = track_dict['data'][-1]
+        if current_point_cloud['id'] < 2:
+            if os.path.exists(CONFIG_FILE.TILE_PATH):
+                project_dir = os.listdir(CONFIG_FILE.TILE_PATH)
+                if len(project_dir) > 2:
+                    shutil.rmtree(CONFIG_FILE.TILE_PATH)  # 删除目录，包括目录下的所有文件
+                    os.mkdir(CONFIG_FILE.TILE_PATH)
         cache.set('TRACT_DATA', track_dict['data'])
         point_cloud_path = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + str(
             current_point_cloud['id']) + CONFIG_FILE.FILE_FORMAT  # TODO: 修改后的原始点云路径
-        if os.path.isfile(point_cloud_path):  # 正式版本需要判断xyz后缀文件
+        if os.path.isfile(point_cloud_path):
             if CONFIG_FILE.PLATFORM_INFO['system'] == 'Windows':
                 point_cloud_rename = str(current_point_cloud['id']) + ".xyz"  # xyz TODO: ubuntu 下不需要重命名
                 point_cloud_repath = CONFIG_FILE.SOURCE_POINT_CLOUD_PATH + str(
@@ -133,16 +143,107 @@ def get_point_cloud(request):
 
 # TODO：scan parameter set
 @csrf_exempt
+def scan_status(request):
+    try:
+        return JsonResponse({'status': CONFIG_FILE.SCAN_STATUS,
+                             'control': CONFIG_FILE.CONTROL_POINT}, status=200)
+    except Exception as e:
+        return JsonResponse(status=202)
+
+
+
+# TODO：scan parameter set
+@csrf_exempt
 def scan_param(request):
     try:
         json_bytes = request.body
         set_params = json.loads(json_bytes)
         # TODO: 根据参数执行相应命令
-        result = set_scan_parameter(set_params)
-        if result:
-            return JsonResponse({"message": 'OK'}, status=200)
+        # result = set_scan_parameter(set_params)
+        result = set_modify_params(set_params['set_params'])
+        if result.message == 'OK':
+            CONFIG_FILE.scanParameter = set_params['save_params_show']
+            return JsonResponse({"message": 'OK',
+                                 "result": result
+                                 }, status=200)
         else:
             return JsonResponse({"message": 'failed'}, status=202)
+    except Exception as e:
+        return JsonResponse(status=202)
+
+
+# TODO：scan parameter set
+@csrf_exempt
+def get_param_show(request):
+    try:
+        return JsonResponse(CONFIG_FILE.scanParameter, status=200)
+    except Exception as e:
+        return JsonResponse(status=202)
+
+
+# TODO: start scan views.APIView , *args, **kwargs
+# @csrf_exempt
+@method_decorator(csrf_exempt, name='dispatch')
+def start_scan(request):
+    try:
+        # start_cmd = 'rostopic pub / chatter std_msgs / String' + '"' + 'data: ' + "'"开启扫描程序"'""
+        # start_cmd = '''rostopic pub /chatter std_msgs/String "data: '开启扫描程序'"'''
+        # status = perform_cmd('开启扫描程序')
+        # if status.message == 'OK':
+        #     CONFIG_FILE.SCAN_STATUS = 'pending'
+        #     return JsonResponse(status, status=200)
+        # else:
+        #     return JsonResponse(status, status=202)
+        # 根据实际情况修改逻辑，此处应该发送扫描状态，并且判断是否为正在扫描
+        if CONFIG_FILE.SCAN_STATUS != 'pending':
+            perform_cmd('开启扫描程序')
+            CONFIG_FILE.SCAN_STATUS = 'pending'
+            send_message(CONFIG_FILE.SCAN_STATUS)
+            return JsonResponse({'message': 'OK'}, status=200)
+        else:
+            return JsonResponse({'message': '已经是正在扫描'}, status=200)
+    except Exception as e:
+        return JsonResponse(status=202)
+    # def get(self, request):
+    #     print('参数', request)
+    #
+    #     pass
+
+
+
+# TODO: end scan
+@csrf_exempt
+def end_scan(request):
+    try:
+        # end_cmd = '''rostopic pub /chatter std_msgs/String "data: '保存'"'''
+        # status = perform_cmd('保存')
+        # if status.message == 'OK':
+        #     CONFIG_FILE.SCAN_STATUS = 'stop'
+        #     return JsonResponse(status, status=200)
+        # else:
+        #     return JsonResponse(status, status=202)
+        if CONFIG_FILE.SCAN_STATUS != 'stop':
+            perform_cmd('保存')  # 执行停止扫描命令
+            CONFIG_FILE.SCAN_STATUS = 'stop'
+            return JsonResponse({'message': 'OK'}, status=200)
+        else:
+            return JsonResponse({'message': '已经是停止状态'}, status=200)
+    except Exception as e:
+        return JsonResponse({'message': 'Failed'}, status=202)
+
+
+# TODO: end scan
+@csrf_exempt
+def add_control(request):
+    try:
+        # control_cmd = '''rostopic pub /chatter std_msgs/String "data: '添加控制点'"'''
+        # if status.message == 'OK':
+        #     return JsonResponse(status, status=200)
+        # else:
+        #     return JsonResponse(status, status=202)
+        perform_cmd('添加控制点')
+        return JsonResponse({'message': 'OK'}, status=200)
+
     except Exception as e:
         return JsonResponse(status=202)
 
@@ -162,6 +263,8 @@ def stop_scan(request):
     try:
         cache.set('stop', 'True')
         print('停止扫描，停止数据请求操作，修改变量')
+        CONFIG_FILE.SCAN_STATUS = 'stop'  # 修改扫描状态变量
+        send_message(CONFIG_FILE.SCAN_STATUS)  # 向浏览器发送停止状态
 
     except Exception as e:
         return HttpResponse(status=202)
@@ -325,3 +428,11 @@ def modify_project(request):
         return JsonResponse({'message': '删除失败'}, status=202, safe=False)
     else:
         return JsonResponse({'message': 'OK'}, status=200, safe=False)
+
+
+@csrf_exempt
+def test_websocket(request):
+    # SimpleEcho.handleMessage()
+    send_message('这是发送值')
+    return JsonResponse({'message': 'OK'}, status=200, safe=False)
+

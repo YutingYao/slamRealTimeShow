@@ -3,6 +3,7 @@ from django.apps import AppConfig
 import shutil
 from slamShow.settings import MEDIA_ROOT
 from libs.globleConfig import CONFIG_FILE
+# from libs.WebSocket import th
 from django.core.cache import cache
 
 
@@ -15,6 +16,8 @@ class PointcloudConfig(AppConfig):
         if os.path.exists(CONFIG_FILE.TILE_PATH):
             shutil.rmtree(CONFIG_FILE.TILE_PATH)  # 删除目录，包括目录下的所有文件
         os.mkdir(CONFIG_FILE.TILE_PATH)
+        # th()
+        # Thread(target=th).start()
         # from pointCloud.models import PointCloudChunk
         # point_cloud = PointCloudChunk.objects.all().delete()
         # track_path = MEDIA_ROOT + "/track/trackPoint.txt"

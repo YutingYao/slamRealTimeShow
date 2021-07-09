@@ -15,6 +15,8 @@ class ConfigFile:
     TRACT_DATA = []
     CIRCLE_DATA = []
     FILE_FORMAT = '_.pcd'
+    SCAN_STATUS = 'noStart'  # pending stop
+    CONTROL_POINT = False
     PLATFORM_INFO = {
         'system': 'Linux',  # Windows
         'version': 10  # 10 ;linux 16 20 ...
@@ -41,6 +43,13 @@ class ConfigFile:
         'noSample_false': '8',  # 不保存不采样数据
         'sample_true': '9',  # 保存采样数据
         'sample_false': '10'  # 不保存采样数据
+    }
+    scanParameter = {
+        'loopback': 1,
+        'optimize': 1,
+        'noSample': 1,
+        'sample': 1,
+        'mode': 'indoor',
     }
     initList = {'CIRCLE_DATA': [], 'TRACT_DATA': [], 'point_cloud': [], 'stop': 'False'}
     cache.set_many(initList)

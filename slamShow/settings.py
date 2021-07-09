@@ -18,7 +18,12 @@ from pathlib import Path
 # BASE_DIR = Path(__file__).resolve().parent.parent
 from libs.ProcessPool import ProcessPool
 from libs.ThreadPool import ThreadPool
+# from libs.WebSocket import th
+from threading import Thread
 
+
+# th()
+# Thread(target=th).start()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MEDIA_URL = '/media/'
@@ -114,7 +119,7 @@ ROOT_URLCONF = 'slamShow.urls'
 global_process_pool = ProcessPool()
 
 global_thread_pool = ThreadPool()
-
+# core -- template
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -126,7 +131,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.core.context_processors.media',
+                'django.template.context_processors.media',
             ],
         },
     },

@@ -354,6 +354,9 @@ def dead_phone_verify_records(phone_verify_records):
         print("invalid")
 
 
+WEBSOCKET = websockets.serve(echo, 'localhost', 8765)
+print(WEBSOCKET)
+
 if __name__ == '__main__':
     __business_id = uuid.uuid1()
     # print(__business_id)
