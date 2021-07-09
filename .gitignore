@@ -40,8 +40,6 @@ lib64/
 parts/
 sdist/
 var/
-update-slamPoint/
-update-slamPoint.zip
 wheels/
 *.egg-info/
 .installed.cfg

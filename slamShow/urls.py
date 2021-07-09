@@ -13,52 +13,40 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# from django.contrib import admin
-# from django.urls import path
-#
-#
-#
-#
-# urlpatterns = [
-#     path('admin/', admin.site.urls),
-# ]
 
 
-from django.conf.urls import url, include
+from django.urls import path, include
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from rest_framework import routers
 
 import pointCloud.url  # 先导入应用的urls模块
 from pointCloud import views
 from slamShow import settings
-# startScan   开始扫描
-# stopScan    停止扫描
-# point_cloud 点云切割为瓦片，路径url添加到数据库
-# point_cloud/id/ 获取瓦片点云路径url、id等数据
+
+router = routers.DefaultRouter()
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    # url(r'^users/', include('users.urls')),
-    # url(r'^testPoint/', include((pointCloud.url, 'pointCloud'), namespace='pointCloud')),  # 添加应用的路由
-    # url(r'^books/$', views.BooksAPIVIew.as_view()),
-    url(r'^api/pointCloudBlank/$', views.point_delete),
-    # url(r'^api/books_all/$', views.point_get),point_cloud
-    url(r'^api/status/$', views.get_status),
-    url(r'^api/project/$', views.create_project),
-    url(r'^api/projects/$', views.get_project),
-    url(r'^api/mproject/(?P<pk>\d+)/$', views.delete_project),
-    url(r'^api/max_project/$', views.get_max_id_project),
-    url(r'^api/pointClouds/(?P<pk>\d+)/$', views.PointAPIVIew.as_view()),
-    url(r'^api/startScan/$', views.start_all_scan),
-    url(r'^api/startAllScan/$', views.start_scan),
-    url(r'^api/stopScan/$', views.stop_scan),
-    url(r'^api/point_cloud/$', views.add_point_cloud),
-    # url(r'^api/point_cloud/(?P<project_id>\d+)/$', views.get_point_cloud),
-    url(r'^api/all_point_cloud/$', views.get_point_cloud),
-    url(r'^api/single_point_cloud/(?P<pk>\d+)/$', views.get_single_point_cloud),
-    url(r'^api/circle_point/$', views.add_circle_point),
-    url(r'^api/scan_param/$', views.scan_param),
-    url(r'^api/test/$', views.test_data),
+    path(r'api/', include(router.urls)),
+    path(r'admin/', admin.site.urls),
+    path(r'api/scanStatus/', views.scan_status),
+    path(r'api/startScan/', views.start_scan),
+    path(r'api/stopScan/', views.stop_scan),
+    path(r'api/webStartScan/', views.start_scan_web),
+    path(r'api/webStopScan/', views.end_scan),
+    path(r'api/device_ready/', views.device_ready),
+    path(r'api/controlPoint/', views.add_control),
+    path(r'api/point_cloud/', views.add_point_cloud),
+    path(r'api/all_point_cloud/', views.get_point_cloud),
+    path(r'api/circle_point/', views.add_circle_point),
+    path(r'api/get_param/', views.get_param_show),  # 获取参数
+    path(r'api/scan_param/', views.scan_param),
+    path(r'api/get_params/', views.get_param),
+    path(r'api/download/', views.download_file),  # 下载文件，可能不需要借口
+    path(r'api/modify/', views.modify_project),  # 文件删除
+    path(r'api/project/', views.get_project),  # 获取所有项目数据
+    path(r'api/test2/', views.test_websocket),  # 获取所有项目数据
 ]
+# point_cloud/id/ 获取瓦片点云路径url、id等数据
 urlpatterns += static('api' + settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns += staticfiles_urlpatterns()  # 设置静态文件 部署到服务器静态文件不这样设置

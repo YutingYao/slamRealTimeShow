@@ -1,11 +1,67 @@
+# -*- coding: utf-8 -*-
 from slamShow.settings import BASE_DIR, MEDIA_ROOT
 
 
 class ConfigFile:
     __instance = None
     __flag = False
+    OPEN_SOCKET = False  # 是否开始websocket
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
-    TRACT_PATH = '/GOSLAM/Downloads/GOSLAMtemp/trackPoint.txt'  # TODO: track point file path
+    DOWNLOAD_PATH_TEST = '/GOSLAM/Downloads/GOSLAM/'
+    TILE_PATH = '/GOSLAM/Downloads/TILE/'
+    BROWSE_PATH_TEST = '/Browse/'
+    BROWSE_PATH = '/Browse/'
+    SCAN_STATUS = 'noStart'  # pending stop
+    SCAN_PARAMS = {
+        'mode': {
+            'outdoor': {
+                'name': 'outdoor',
+                'params': [
+                    {'key': 'mappingCornerLeafSize', 'value': 0.1},
+                    {'key': 'mappingSurfLeafSize', 'value': 0.3},
+                    {'key': 'surroundingKeyframeDensity', 'value': 0.2},
+                    {'key': 'surroundingkeyframeAddingDistThreshold', 'value': 0.25},
+                    {'key': 'surroundingkeyframeAddingAngleThreshold', 'value': 0.15},
+                    {'key': 'historyKeyframeFitnessScore', 'value': 0.05}
+                ]
+            },
+            'indoor': {
+                'name': 'indoor',
+                'params': [
+                    {'key': 'mappingCornerLeafSize', 'value': 0.05},
+                    {'key': 'mappingSurfLeafSize', 'value': 0.1},
+                    {'key': 'surroundingKeyframeDensity', 'value': 0.1},
+                    {'key': 'surroundingkeyframeAddingDistThreshold', 'value': 0.1},
+                    {'key': 'surroundingkeyframeAddingAngleThreshold', 'value': 0.1},
+                    {'key': 'historyKeyframeFitnessScore', 'value': 0.03}
+                ]
+            },
+            'stairway': {
+                'name': 'stairway',
+                'params': [
+                    {'key': 'mappingCornerLeafSize', 'value': 0.01},
+                    {'key': 'mappingSurfLeafSize', 'value': 0.04},
+                    {'key': 'surroundingKeyframeDensity', 'value': 0.015},
+                    {'key': 'surroundingkeyframeAddingDistThreshold', 'value': 0.05},
+                    {'key': 'surroundingkeyframeAddingAngleThreshold', 'value': 0.08},
+                    {'key': 'historyKeyframeFitnessScore', 'value': 0.01},
+                ]
+            }
+        },
+        'selected_mode': 'indoor',
+        'otherParam': [
+            {
+                'name': 'loopClosureEnableFlag',
+                'desc': '二次回环',
+                'value': True
+            },
+            {
+                'name': 'secondary_optimization',
+                'desc': '二次优化',
+                'value': False
+            }
+        ]
+    }
     TRACT_DATA = []
     CIRCLE_DATA = []
     FILE_FORMAT = '_.pcd'
@@ -14,7 +70,7 @@ class ConfigFile:
         'version': 10  # 10 ;linux 16 20 ...
     }
     CIRCLE_MAX_ID = 0
-    CIRCLE_ID = 0 
+    CIRCLE_ID = 0
     CURRENT_PROJECT = {
         'project_name': '',  # 项目名称
         'point_cloud_id': 0,
@@ -38,7 +94,13 @@ class ConfigFile:
         'sample_true': '9',  # 保存采样数据
         'sample_false': '10'  # 不保存采样数据
     }
-    cache.set('stop', 'false')
+    scanParameter = {
+        'loopback': True,
+        'optimize': False,
+        'noSample': True,
+        'sample': True,
+        'mode': 'indoor',
+    }
     # PotreeUbuntu20Potree
     POTREE_PATH = BASE_DIR + '/libs/PotreeUbuntu20Potree/PotreeConverter '
     SET_SCAN_PARAMETER = {
@@ -47,20 +109,43 @@ class ConfigFile:
     # 1、创建扫描文件夹，没有扫描，下次开机时，初始化为没有扫描文件夹
     # 2、后台确定扫描是调用start_scan接口，不调用就是没有开始扫描
     activeProject = ''
+
     scanStatus = 'notStart'  # scan status noStart pending end
-    from pointCloud.models import PointCloudChunk
-    point_cloud = PointCloudChunk.objects.all().delete()
+
     track_path = MEDIA_ROOT + "/track/trackPoint.txt"
     circle_path = MEDIA_ROOT + "/track/circlePoint.txt"
-
-    with open(track_path, 'r+', encoding='utf-8') as f:
-        f.truncate()
-    with open(circle_path, 'r+', encoding='utf-8') as f:
-        f.truncate()
-    print('执行初始化操作')
+    # SCAN_PARAMS = {
+    #     'mode': {
+    #         'outdoor': [
+    #             {'key': 'mappingCornerLeafSize', 'value': 0.1},
+    #             {'key': 'mappingSurfLeafSize', 'value': 0.3},
+    #             {'key': 'surroundingKeyframeDensity', 'value': 0.2},
+    #             {'key': 'surroundingkeyframeAddingDistThreshold', 'value': 0.25},
+    #             {'key': 'surroundingkeyframeAddingAngleThreshold', 'value': 0.15},
+    #             {'key': 'historyKeyframeFitnessScore', 'value': 0.05},
+    #         ],
+    #         'indoor': [
+    #             {'key': 'mappingCornerLeafSize', 'value': 0.05},
+    #             {'key': 'mappingSurfLeafSize', 'value': 0.1},
+    #             {'key': 'surroundingKeyframeDensity', 'value': 0.1},
+    #             {'key': 'surroundingkeyframeAddingDistThreshold', 'value': 0.1},
+    #             {'key': 'surroundingkeyframeAddingAngleThreshold', 'value': 0.1},
+    #             {'key': 'historyKeyframeFitnessScore', 'value': 0.03},
+    #         ],
+    #         'stairway': [
+    #             {'key': 'mappingCornerLeafSize', value: 0.01},
+    #             {'key': 'mappingSurfLeafSize', value: 0.04},
+    #             {'key': 'surroundingKeyframeDensity', value: 0.015},
+    #             {'key': 'surroundingkeyframeAddingDistThreshold', value: 0.05},
+    #             {'key': 'surroundingkeyframeAddingAngleThreshold', value: 0.08},
+    #             {'key': 'historyKeyframeFitnessScore', value: 0.01},
+    #         ]
+    #     },
+    #     'selected': 'indoor'
+    # }
 
     def __new__(cls, *args, **kwargs):
-        print('new 执行了')
+        # print('new 执行了')
 
         if cls.__instance is None:
             cls.__instance = super().__new__(cls)
@@ -72,6 +157,4 @@ class ConfigFile:
             ConfigFile.__flag = True
 
 
-
 CONFIG_FILE = ConfigFile()
-
