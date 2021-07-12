@@ -114,35 +114,7 @@ class ConfigFile:
 
     track_path = MEDIA_ROOT + "/track/trackPoint.txt"
     circle_path = MEDIA_ROOT + "/track/circlePoint.txt"
-    # SCAN_PARAMS = {
-    #     'mode': {
-    #         'outdoor': [
-    #             {'key': 'mappingCornerLeafSize', 'value': 0.1},
-    #             {'key': 'mappingSurfLeafSize', 'value': 0.3},
-    #             {'key': 'surroundingKeyframeDensity', 'value': 0.2},
-    #             {'key': 'surroundingkeyframeAddingDistThreshold', 'value': 0.25},
-    #             {'key': 'surroundingkeyframeAddingAngleThreshold', 'value': 0.15},
-    #             {'key': 'historyKeyframeFitnessScore', 'value': 0.05},
-    #         ],
-    #         'indoor': [
-    #             {'key': 'mappingCornerLeafSize', 'value': 0.05},
-    #             {'key': 'mappingSurfLeafSize', 'value': 0.1},
-    #             {'key': 'surroundingKeyframeDensity', 'value': 0.1},
-    #             {'key': 'surroundingkeyframeAddingDistThreshold', 'value': 0.1},
-    #             {'key': 'surroundingkeyframeAddingAngleThreshold', 'value': 0.1},
-    #             {'key': 'historyKeyframeFitnessScore', 'value': 0.03},
-    #         ],
-    #         'stairway': [
-    #             {'key': 'mappingCornerLeafSize', value: 0.01},
-    #             {'key': 'mappingSurfLeafSize', value: 0.04},
-    #             {'key': 'surroundingKeyframeDensity', value: 0.015},
-    #             {'key': 'surroundingkeyframeAddingDistThreshold', value: 0.05},
-    #             {'key': 'surroundingkeyframeAddingAngleThreshold', value: 0.08},
-    #             {'key': 'historyKeyframeFitnessScore', value: 0.01},
-    #         ]
-    #     },
-    #     'selected': 'indoor'
-    # }
+    point_index = 881
 
     def __new__(cls, *args, **kwargs):
         # print('new 执行了')

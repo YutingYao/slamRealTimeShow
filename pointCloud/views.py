@@ -18,7 +18,7 @@ from libs.utils import set_scan_parameter
 from libs.scanParams import set_modify_params
 from slamShow.settings import global_thread_pool
 from django.core.cache import cache
-
+from slamShow.settings import MEDIA_ROOT
 
 # TODO: 下面是所有接口
 # step 1、start scan, check is has folder for save scan data, modify scan status,
@@ -398,8 +398,82 @@ def modify_project(request):
     else:
         return JsonResponse({'message': 'OK'}, status=200, safe=False)
 
+
 @csrf_exempt
 def test_websocket(request):
     # SimpleEcho.handleMessage()
     send_message('这是发送值')  # 以后修改为实际状态值
     return JsonResponse({'message': 'OK'}, status=200, safe=False)
+
+
+@csrf_exempt
+def get_test_project(request):
+    # 读取文件
+    tract_data = cache.get('TRACT_DATA')
+    if tract_data:
+        pass
+    else:
+        # 读取文件
+        tract_data = []
+        file_url = MEDIA_ROOT + '/transformations.txt'
+        with open(file_url, 'r', encoding='utf-8') as f:
+            lists = f.readlines()
+            for line in lists:
+
+                line_list = line.split()
+                print('line--', line)
+                print('line_list--', line_list)
+                item_dict = {
+                    'id': int(line_list[3]),
+                    'x': float(line_list[0]),
+                    'y': float(line_list[1]),
+                    'z': float(line_list[2]),
+                    'er': float(line_list[4]),
+                    'ep': float(line_list[5]),
+                    'ey': float(line_list[6]),
+                }
+                tract_data.append(item_dict)
+        cache.set('TRACT_DATA', tract_data)
+        print(tract_data)
+    point_list = cache.get('point_cloud')
+    if point_list:
+        pass
+    else:
+        point_list = []
+    for item in [1, 2, 3, 4, 5]:
+        # point_index = len(point_list)
+        CONFIG_FILE.point_index += 1
+        # cache.set('TRACT_DATA', tract_data)
+        # cloud_url = '/GOSLAMtemp/' + only_file_name + "conver/cloud.js"
+        # cloud_url = MEDIA_ROOT + '/point/item/' + str(point_index) + '_conver/cloud.js'
+        cloud_url = 'api/media/point/item/' + str(CONFIG_FILE.point_index) + '_conver/cloud.js'
+        # point_cloud_list = cache.get('point_cloud')
+        point_cloud = {
+            'cloud_id': CONFIG_FILE.point_index,
+            'cloud_name': '点云名称',
+            'cloud_url': cloud_url,
+            'cloud_project': '点云项目',
+            'project': 0
+        }
+        point_list.append(point_cloud)
+        cache.set('point_cloud', point_list)
+    if len(point_list) > 1:
+        point_cloud_list = {
+            "track": tract_data,  # tract_data CONFIG_FILE.TRACT_DATA
+            "point": point_list,
+            "message": True
+        }
+    else:
+        point_cloud_list = {
+            "track": tract_data,  # tract_data CONFIG_FILE.TRACT_DATA
+            "point": point_list,
+            "message": True
+        }
+
+    # if point_cloud_list is not None:
+    #     point_cloud_list.append(point_cloud)
+    # else:
+    #     point_cloud_list = [point_cloud]
+    # cache.set('point_cloud', point_cloud_list)  # 设置缓存数据
+    return JsonResponse(point_cloud_list)
+
