@@ -20,6 +20,7 @@ from slamShow.settings import global_thread_pool
 from django.core.cache import cache
 from slamShow.settings import MEDIA_ROOT
 
+
 # TODO: 下面是所有接口
 # step 1、start scan, check is has folder for save scan data, modify scan status,
 @csrf_exempt
@@ -215,7 +216,6 @@ def start_scan_web(request):
     cmd = """/bin/bash -c '''source /opt/ros/noetic/setup.bash && rostopic pub /chatter std_msgs/String "data: '开启扫描程序'"'''"""
     # cmd = '''source /opt/ros/noetic/setup.bash && rostopic pub /chatter std_msgs/String "data: '开启扫描程序'"'''
 
-    
     # ex = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     # out, err = ex.communicate()
     # status = ex.wait()
@@ -228,8 +228,6 @@ def start_scan_web(request):
     # else:
     #     return JsonResponse({'message': err,'data':time.time()})
 
-    
- 
     # except Exception as e:
     #     return JsonResponse(status=202)
 
@@ -253,7 +251,7 @@ def end_scan(request):
         os.popen(cmd)
         return JsonResponse({'message': 'OK'})
     except Exception as e:
-        return JsonResponse({'message': 'failed','data':time.time()})
+        return JsonResponse({'message': 'failed', 'data': time.time()})
 
 
 # TODO: end scan
@@ -277,12 +275,13 @@ def add_control(request):
         os.popen(cmd)
         return JsonResponse({'message': 'OK'})
     except Exception as e:
-        return JsonResponse({'message': 'failed','data':time.time()})
+        return JsonResponse({'message': 'failed', 'data': time.time()})
+
 
 @csrf_exempt
 def device_ready(request):
     try:
-        CONFIG_FILE.SCAN_STATUS = 'noStart'    # 修改状态值
+        CONFIG_FILE.SCAN_STATUS = 'noStart'  # 修改状态值
         if CONFIG_FILE.OPEN_SOCKET:
             send_message(CONFIG_FILE.SCAN_STATUS)  # 发送给前端状态值
         return JsonResponse({'message': 'OK'})
@@ -323,16 +322,12 @@ def download_file(request):
 # 测试数据
 @csrf_exempt
 def get_project(request):
-    # tract = cache.get('TRACT_DATA')
-    # circle = cache.get('CIRCLE_DATA')
-    # point = cache.get('point_cloud')
     project_dir = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST)  # 获取文件
-    # print(project_list)
     project_list = []
     for item in project_dir:
         if item == 'delete':
             continue
-        if os.path.isfile(CONFIG_FILE.DOWNLOAD_PATH_TEST + '/' + item):
+        if os.path.isfile(CONFIG_FILE.DOWNLOAD_PATH_TEST + item):
             continue
         item_file = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST + item)  # 获取文件
         down_list = []
@@ -342,7 +337,7 @@ def get_project(request):
                     continue
                 item_name = CONFIG_FILE.BROWSE_PATH + item + '/' + item_name
                 down_list.append(item_name)
-            pass
+
         # 计算item内所有文件夹
         if os.path.exists(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/TILE/'):  # 获取文件
             cloud_file = os.listdir(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/TILE/')  # 获取文件
@@ -355,6 +350,8 @@ def get_project(request):
         # create_time = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
         track_point = []
         if 'transformations.pcd' in item_file:
+            # 由于读取轨迹点耗时较长，修改为浏览时读取--轨迹列表保存为空，添加读取轨迹url
+            # read_track_url = CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/transformations.pcd'
             with open(CONFIG_FILE.DOWNLOAD_PATH_TEST + item + '/transformations.pcd', "r") as f:
                 readLinesFilter = f.readlines()[11:]
                 for line in readLinesFilter:
@@ -387,6 +384,22 @@ def get_project(request):
     return JsonResponse(project_list, status=200, safe=False)
 
 
+# 获取bag数据
+@csrf_exempt
+def get_bag(request):
+    project_dir = os.listdir(CONFIG_FILE.BAG_PATH)  # 获取文件
+    project_list = []
+    for item in project_dir:
+        if os.path.isfile(CONFIG_FILE.BAG_PATH + '/' + item):
+            file_item = {
+                'name': item,
+                'path': CONFIG_FILE.BAG_PATH + '/' + item,
+            }
+            project_list.append(file_item)
+
+    return JsonResponse(project_list, status=200, safe=False)
+
+
 @csrf_exempt
 def modify_project(request):
     json_bytes = request.body
@@ -415,11 +428,10 @@ def get_test_project(request):
     else:
         # 读取文件
         tract_data = []
-        file_url = MEDIA_ROOT + '/transformations.txt'
+        file_url = MEDIA_ROOT + '/point/transformations.txt'
         with open(file_url, 'r', encoding='utf-8') as f:
             lists = f.readlines()
             for line in lists:
-
                 line_list = line.split()
                 print('line--', line)
                 print('line_list--', line_list)
@@ -476,4 +488,3 @@ def get_test_project(request):
     #     point_cloud_list = [point_cloud]
     # cache.set('point_cloud', point_cloud_list)  # 设置缓存数据
     return JsonResponse(point_cloud_list)
-

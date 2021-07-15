@@ -45,6 +45,7 @@ urlpatterns = [
     path(r'api/download/', views.download_file),  # 下载文件，可能不需要借口
     path(r'api/modify/', views.modify_project),  # 文件删除
     path(r'api/project/', views.get_project),  # 获取所有项目数据
+    path(r'api/bag/', views.get_bag),  # 获取所有项目数据
     path(r'api/test_project/', views.get_test_project),  # 获取所有项目数据
     # path(r'api/test_add_data/', views.test_add_project),  # 获取所有项目数据
     path(r'api/test2/', views.test_websocket),  # 获取所有项目数据

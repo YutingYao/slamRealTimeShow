@@ -5,10 +5,11 @@ from slamShow.settings import BASE_DIR, MEDIA_ROOT
 class ConfigFile:
     __instance = None
     __flag = False
-    OPEN_SOCKET = False  # 是否开始websocket
+    OPEN_SOCKET = True  # 是否开始websocket False
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     DOWNLOAD_PATH_TEST = '/GOSLAM/Downloads/GOSLAM/'
     TILE_PATH = '/GOSLAM/Downloads/TILE/'
+    BAG_PATH = '/GOSLAM/Downloads/bag/'
     BROWSE_PATH_TEST = '/Browse/'
     BROWSE_PATH = '/Browse/'
     SCAN_STATUS = 'noStart'  # pending stop
@@ -114,7 +115,7 @@ class ConfigFile:
 
     track_path = MEDIA_ROOT + "/track/trackPoint.txt"
     circle_path = MEDIA_ROOT + "/track/circlePoint.txt"
-    point_index = 881
+    point_index = 881  # 881 0
 
     def __new__(cls, *args, **kwargs):
         # print('new 执行了')
