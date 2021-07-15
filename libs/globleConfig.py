@@ -9,7 +9,9 @@ class ConfigFile:
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     DOWNLOAD_PATH_TEST = '/GOSLAM/Downloads/GOSLAM/'
     TILE_PATH = '/GOSLAM/Downloads/TILE/'
-    BAG_PATH = '/GOSLAM/Downloads/bag/'
+    # BAG_PATH = '/GOSLAM/Downloads/bag/'  # 位置更改后，nginx映射也需要更改, 否则不能下载文件
+    BAG_DOWNLOAD = '/bag/'
+    BAG_PATH = r'D:/testbag/'
     BROWSE_PATH_TEST = '/Browse/'
     BROWSE_PATH = '/Browse/'
     SCAN_STATUS = 'noStart'  # pending stop

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import operator
 # sys.path.append("/opt/ros/noetic/lib/python3/dist-packages")
 # import rospy
 # from std_msgs.msg import String
@@ -388,16 +389,52 @@ def get_project(request):
 @csrf_exempt
 def get_bag(request):
     project_dir = os.listdir(CONFIG_FILE.BAG_PATH)  # 获取文件
+    print('project_dir-->:', project_dir)
     project_list = []
     for item in project_dir:
-        if os.path.isfile(CONFIG_FILE.BAG_PATH + '/' + item):
+        if os.path.isfile(CONFIG_FILE.BAG_PATH + item):
+            create_time = os.path.getmtime(CONFIG_FILE.BAG_PATH + item)
+            # 'down_file' 下载使用url,window下使用media拼接路径, ubuntu 下使用 nginx 映射 位置 加 文件相对路径
+            # 'name' 带后缀格式文件名称  文件下载使用
+            # 'path' 文件在系统中的真实路径，修改文件名称使用
+            # 'create_time' 获取文件创建时间（秒），根据使用排序
             file_item = {
+                'down_file': CONFIG_FILE.BAG_DOWNLOAD + item,
                 'name': item,
-                'path': CONFIG_FILE.BAG_PATH + '/' + item,
+                'path': CONFIG_FILE.BAG_PATH + item,
+                'create_time': create_time
             }
             project_list.append(file_item)
-
+    list2 = sorted(project_list, key=operator.itemgetter('create_time'), reverse=True)
+    project_list = list2
+    # print(list2)
     return JsonResponse(project_list, status=200, safe=False)
+
+
+@csrf_exempt
+def modify_bag(request):
+    json_bytes = request.body
+    modify_dict = json.loads(json_bytes)
+    if modify_dict['rename']:
+        try:
+            rename = CONFIG_FILE.BAG_PATH + modify_dict['rename']
+            os.rename(modify_dict['path'], rename)
+            return JsonResponse({'message': 'OK'})
+        except Exception as f:
+            return JsonResponse({'message': '修改失败'})
+
+    elif modify_dict['delete']:
+        print(123)
+        # result = shutil.rmtree(modify_dict['path'])  # TODO: 删除目录及目录
+        try:
+            result = os.remove(modify_dict['path'])
+            is_exists = os.path.exists(modify_dict['path'])
+            return JsonResponse({'message': 'OK'})
+        except Exception as f:
+            return JsonResponse({'message': '删除失败'})
+
+
+
 
 
 @csrf_exempt

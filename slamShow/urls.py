@@ -47,6 +47,7 @@ urlpatterns = [
     path(r'api/project/', views.get_project),  # 获取所有项目数据
     path(r'api/bag/', views.get_bag),  # 获取所有项目数据
     path(r'api/test_project/', views.get_test_project),  # 获取所有项目数据
+    path(r'api/modify_bag/', views.modify_bag),  # 文件删除
     # path(r'api/test_add_data/', views.test_add_project),  # 获取所有项目数据
     path(r'api/test2/', views.test_websocket),  # 获取所有项目数据
 ]
