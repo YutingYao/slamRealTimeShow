@@ -465,7 +465,7 @@ def get_test_project(request):
     else:
         # 读取文件
         tract_data = []
-        file_url = MEDIA_ROOT + '/point/transformations.txt'
+        file_url = MEDIA_ROOT + '/point2/transformations.txt'
         with open(file_url, 'r', encoding='utf-8') as f:
             lists = f.readlines()
             for line in lists:
@@ -482,20 +482,29 @@ def get_test_project(request):
                     'ey': float(line_list[6]),
                 }
                 tract_data.append(item_dict)
-        cache.set('TRACT_DATA', tract_data)
-        print(tract_data)
+
+        CONFIG_FILE.test_track_list = tract_data
+
+        # print(tract_data)
     point_list = cache.get('point_cloud')
     if point_list:
         pass
     else:
         point_list = []
+    tract_data_list = cache.get('TRACT_DATA')
+    if tract_data_list:
+        pass
+    else:
+        tract_data_list = []
+    tract_data_list.extend(CONFIG_FILE.test_track_list[CONFIG_FILE.point_index: CONFIG_FILE.point_index + 5])
+    cache.set('TRACT_DATA', tract_data_list)
     for item in [1, 2, 3, 4, 5]:
         # point_index = len(point_list)
-        CONFIG_FILE.point_index += 1
+        # CONFIG_FILE.point_index += 1
         # cache.set('TRACT_DATA', tract_data)
         # cloud_url = '/GOSLAMtemp/' + only_file_name + "conver/cloud.js"
         # cloud_url = MEDIA_ROOT + '/point/item/' + str(point_index) + '_conver/cloud.js'
-        cloud_url = 'api/media/point/item/' + str(CONFIG_FILE.point_index) + '_conver/cloud.js'
+        cloud_url = 'api/media/point2/item/' + str(CONFIG_FILE.point_index) + '_conver/cloud.js'
         # point_cloud_list = cache.get('point_cloud')
         point_cloud = {
             'cloud_id': CONFIG_FILE.point_index,
@@ -505,16 +514,17 @@ def get_test_project(request):
             'project': 0
         }
         point_list.append(point_cloud)
-        cache.set('point_cloud', point_list)
+        CONFIG_FILE.point_index += 1
+    cache.set('point_cloud', point_list)
     if len(point_list) > 1:
         point_cloud_list = {
-            "track": tract_data,  # tract_data CONFIG_FILE.TRACT_DATA
+            "track": tract_data_list,  # tract_data CONFIG_FILE.TRACT_DATA
             "point": point_list,
             "message": True
         }
     else:
         point_cloud_list = {
-            "track": tract_data,  # tract_data CONFIG_FILE.TRACT_DATA
+            "track": tract_data_list,  # tract_data CONFIG_FILE.TRACT_DATA
             "point": point_list,
             "message": True
         }
@@ -525,3 +535,8 @@ def get_test_project(request):
     #     point_cloud_list = [point_cloud]
     # cache.set('point_cloud', point_cloud_list)  # 设置缓存数据
     return JsonResponse(point_cloud_list)
+
+
+@csrf_exempt
+def test_add_scan_data(request):
+    pass

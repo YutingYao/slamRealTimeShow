@@ -117,7 +117,8 @@ class ConfigFile:
 
     track_path = MEDIA_ROOT + "/track/trackPoint.txt"
     circle_path = MEDIA_ROOT + "/track/circlePoint.txt"
-    point_index = 881  # 881 0
+    point_index = 0  # 881 0
+    test_track_list = []
 
     def __new__(cls, *args, **kwargs):
         # print('new 执行了')
