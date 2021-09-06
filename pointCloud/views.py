@@ -205,7 +205,8 @@ def scan_status(request):
     try:
         # return JsonResponse(CONFIG_FILE, status=200)
         return JsonResponse({'status': CONFIG_FILE.SCAN_STATUS,
-                             'socket': CONFIG_FILE.OPEN_SOCKET}, status=200)
+                             'socket': CONFIG_FILE.OPEN_SOCKET,
+                             'orientation': CONFIG_FILE.SCREEN_ORIENTATION}, status=200)
     except Exception as e:
         return JsonResponse(status=202)
 
@@ -638,3 +639,23 @@ def get_test_project(request):
     #     point_cloud_list = [point_cloud]
     # cache.set('point_cloud', point_cloud_list)  # 设置缓存数据
     return JsonResponse(point_cloud_list)
+
+
+@csrf_exempt
+def modify_config(request):
+    json_bytes = request.body
+    modify_dict = json.loads(json_bytes)
+    print(modify_dict)
+    for key in modify_dict:
+        print('key----', key)
+        print(CONFIG_FILE.SCREEN_ORIENTATION)
+        CONFIG_FILE.SCREEN_ORIENTATION = modify_dict['SCREEN_ORIENTATION']
+        print('修改', CONFIG_FILE.SCREEN_ORIENTATION)
+    return JsonResponse({'message': 'OK'}, status=200, safe=False)
+
+
+@csrf_exempt
+def disk(request):
+    st = os.statvfs(folder)
+    space = st.f_bavail * st.f_frsize / 1024 / 1024 // 1024
+    return JsonResponse({'message': 'OK', 'space': space}, status=200, safe=False)

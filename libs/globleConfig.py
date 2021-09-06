@@ -5,9 +5,10 @@ from slamShow.settings import BASE_DIR, MEDIA_ROOT
 class ConfigFile:
     __instance = None
     __flag = False
-    OPEN_SOCKET = True  # 是否开始websocket False
+    OPEN_SOCKET = False  # 是否开始websocket False True
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
-    DOWNLOAD_PATH_TEST = '/GOSLAM/Downloads/GOSLAM/'
+    # DOWNLOAD_PATH_TEST = '/GOSLAM/Downloads/GOSLAM/'
+    DOWNLOAD_PATH_TEST = r'D:/testbag/GOSLAM/'
     TILE_PATH = '/GOSLAM/Downloads/TILE/'
     # BAG_PATH = '/GOSLAM/Downloads/bag/'  # 位置更改后，nginx映射也需要更改, 否则不能下载文件
     BAG_DOWNLOAD = '/bag/'
@@ -15,6 +16,7 @@ class ConfigFile:
     BROWSE_PATH_TEST = '/Browse/'
     BROWSE_PATH = '/Browse/'
     SCAN_STATUS = 'noStart'  # pending stop
+    SCREEN_ORIENTATION = 'landscape'
     SCAN_PARAMS = {
         'mode': {
             'outdoor': {
