@@ -52,6 +52,7 @@ urlpatterns = [
     path(r'api/circle_point/', views.add_circle_point),
     path(r'api/config/', views.modify_config),
     path(r'api/disk/', views.disk),
+    path(r'api/scan_config/', views.config),
     path(r'api/test2/', views.test_websocket),  # 获取所有项目数据
 ]
 # point_cloud/id/ 获取瓦片点云路径url、id等数据

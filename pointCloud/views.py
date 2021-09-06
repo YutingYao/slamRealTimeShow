@@ -2,6 +2,7 @@
 import os
 import sys
 import operator
+from rest_framework.decorators import action
 # sys.path.append("/opt/ros/noetic/lib/python3/dist-packages")
 # import rospy
 # from std_msgs.msg import String
@@ -20,6 +21,8 @@ from libs.scanParams import set_modify_params
 from slamShow.settings import global_thread_pool
 from django.core.cache import cache
 from slamShow.settings import MEDIA_ROOT
+from pointCloud.models import ConfigInfo
+from django.views import View
 
 
 # TODO: 下面是所有接口
@@ -659,3 +662,26 @@ def disk(request):
     st = os.statvfs(folder)
     space = st.f_bavail * st.f_frsize / 1024 / 1024 // 1024
     return JsonResponse({'message': 'OK', 'space': space}, status=200, safe=False)
+
+
+@csrf_exempt
+def config(request):
+    if request.method == 'POST':
+        ConfigInfo.objects.create(is_record=True)
+        return JsonResponse({'is_record': 'ok'}, status=200, safe=False)
+    elif request.method == 'GET':
+        get_info = ConfigInfo.objects.all()[0]
+        return JsonResponse({'is_record': get_info.is_record}, status=200, safe=False)
+
+    elif request.method == 'PATCH':
+        json_bytes = request.body
+        modify_dict = json.loads(json_bytes)
+        get_info = ConfigInfo.objects.all()[0]
+        get_info.is_record = modify_dict['is_record']
+        get_info.save()
+    elif request.method == 'DELETE':
+        get_info = ConfigInfo.objects.get(id=1)
+        get_info.delete()
+        return JsonResponse({'is_record': 'ok'}, status=200, safe=False)
+    return JsonResponse({'is_record': get_info.is_record}, status=200, safe=False)
+
