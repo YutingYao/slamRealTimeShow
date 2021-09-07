@@ -572,7 +572,7 @@ def get_test_project(request):
     else:
         # 读取文件
         tract_data = []
-        file_url = MEDIA_ROOT + '/point2-5/transformations.txt'
+        file_url = MEDIA_ROOT + '/point2/transformations23.txt'  # point2-5/point2/transformations.txt  point2
         with open(file_url, 'r', encoding='utf-8') as f:
             lists = f.readlines()
             for line in lists:
@@ -611,7 +611,8 @@ def get_test_project(request):
         # cache.set('TRACT_DATA', tract_data)
         # cloud_url = '/GOSLAMtemp/' + only_file_name + "conver/cloud.js"
         # cloud_url = MEDIA_ROOT + '/point/item/' + str(point_index) + '_conver/cloud.js'
-        cloud_url = 'api/media/point2-5/item/' + str(CONFIG_FILE.point_index) + '_conver/cloud.js'
+        cloud_url = 'api/media/point2/item/' + str(CONFIG_FILE.point_index) + '_conver/cloud.js'
+        # cloud_url = 'api/media/point2-5/item/' + str(CONFIG_FILE.point_index) + '_conver/cloud.js'
         # point_cloud_list = cache.get('point_cloud')
         point_cloud = {
             'cloud_id': CONFIG_FILE.point_index,
