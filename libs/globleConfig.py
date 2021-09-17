@@ -5,6 +5,7 @@ from slamShow.settings import BASE_DIR, MEDIA_ROOT
 class ConfigFile:
     __instance = None
     __flag = False
+    CLOUD_ID = 0
     OPEN_SOCKET = False  # 是否开始websocket False True
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     # DOWNLOAD_PATH_TEST = '/GOSLAM/Downloads/GOSLAM/'

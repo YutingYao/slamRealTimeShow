@@ -36,6 +36,7 @@ urlpatterns = [
     path(r'api/controlPoint/', views.add_control),
     path(r'api/point_cloud/', views.add_point_cloud),
     path(r'api/all_point_cloud/', views.get_point_cloud),
+    path(r'api/all_point_cloud_app/', views.get_point_cloud_app),
     path(r'api/get_param/', views.get_param_show),  # 获取参数
     path(r'api/scan_param/', views.scan_param),
     path(r'api/get_params/', views.get_param),
