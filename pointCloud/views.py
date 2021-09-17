@@ -550,6 +550,9 @@ def modify_project(request):
     modify_dict = json.loads(json_bytes)
     result = shutil.rmtree(CONFIG_FILE.DOWNLOAD_PATH_TEST + modify_dict['path'])  # TODO: 删除目录及目录
     is_exists = os.path.exists(CONFIG_FILE.DOWNLOAD_PATH_TEST + modify_dict['path'])
+    # path = request.POST.get("path")
+    # result = shutil.rmtree(CONFIG_FILE.DOWNLOAD_PATH_TEST + path)  # TODO: 删除目录及目录
+    # is_exists = os.path.exists(CONFIG_FILE.DOWNLOAD_PATH_TEST + path)
     if is_exists:
         return JsonResponse({'message': '删除失败'}, status=202, safe=False)
     else:
