@@ -342,7 +342,7 @@ def device_ready(request):
     try:
         CONFIG_FILE.SCAN_STATUS = 'noStart'  # 修改状态值
         if CONFIG_FILE.OPEN_SOCKET:
-            send_message(CONFIG_FILE.SCAN_STATUS)  # 发送给前端状态值
+            send_message({'status': CONFIG_FILE.SCAN_STATUS, 'cloud': None})  # 发送给前端状态值
         return JsonResponse({'message': 'OK'})
     except  Exception as e:
         return JsonResponse({'message': 'failed'})
@@ -364,7 +364,8 @@ def stop_scan(request):
         cache.set('stop', 'True')
         CONFIG_FILE.SCAN_STATUS = 'stop'
         if CONFIG_FILE.OPEN_SOCKET:
-            send_message(CONFIG_FILE.SCAN_STATUS)  # 发送给前端状态值
+            # send_message(CONFIG_FILE.SCAN_STATUS)  # 发送给前端状态值
+            send_message({'status': CONFIG_FILE.SCAN_STATUS, 'cloud': None})  # 发送给前端状态值
         print('停止扫描，停止数据请求操作，修改变量')
 
     except Exception as e:

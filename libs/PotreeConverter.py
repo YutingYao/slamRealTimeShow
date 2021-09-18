@@ -38,6 +38,16 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name, current
     else:
         point_cloud_list = [point_cloud]
     cache.set('point_cloud', point_cloud_list)  # 设置缓存数据
+    if CONFIG_FILE.OPEN_SOCKET:
+        circle_list = cache.get('CIRCLE_DATA')
+        track_list = cache.get('TRACT_DATA')
+        track_list = track_list[point_cloud.cloud_id]
+        send_message({'status': 'null', 'cloud': {
+            "track": [track_list],  # tract_data CONFIG_FILE.TRACT_DATA
+            "point": [point_cloud],
+            "circle_point": circle_list,  # CONFIG_FILE.CIRCLE_DATA circle_point_list
+            "message": True
+        }})  # 发送给前端状态值
 
 
 if __name__ == '__main__':

@@ -125,7 +125,8 @@ def send_message(message):
     print('s_2--', s_2)
     for u in s_2:
         print('u--', u)
-        send_msg(u, bytes(message, encoding="utf-8"))
+        data = json.dumps(message)
+        send_msg(u, bytes(data, encoding="utf-8"))
 
 
 if CONFIG_FILE.OPEN_SOCKET:
