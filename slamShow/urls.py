@@ -42,8 +42,8 @@ urlpatterns = [
     path(r'api/get_params/', views.get_param),
     path(r'api/download/', views.download_file),  # 下载文件，可能不需要借口
     path(r'api/modify/', views.modify_project),  # 文件删除
-    path(r'api/project/', views.get_project_list),  # 获取所有项目数据
-    path(r'api/project_sort/', views.get_project),  # 获取所有项目数据
+    path(r'api/project_sort/', views.get_project_list),  # 获取所有项目数据
+    path(r'api/project/', views.get_project),  # 获取所有项目数据
     path(r'api/track/', views.read_track),  # 读取轨迹文件
     path(r'api/bag/', views.get_bag),  # 获取所有项目数据
     path(r'api/test_project/', views.get_test_project),  # 获取所有项目数据
@@ -54,6 +54,7 @@ urlpatterns = [
     path(r'api/config/', views.modify_config),
     path(r'api/disk/', views.disk),
     path(r'api/scan_config/', views.config),
+    path(r'api/history/', views.config),
     path(r'api/test2/', views.test_websocket),  # 获取所有项目数据
 ]
 # point_cloud/id/ 获取瓦片点云路径url、id等数据

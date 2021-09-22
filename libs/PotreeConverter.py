@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
+import json
 import subprocess
 from multiprocessing import Process
 from slamShow.settings import MEDIA_ROOT
 from libs.globleConfig import CONFIG_FILE
+from libs.WebSocket import send_message
 from django.core.cache import cache
 
 
@@ -42,12 +44,16 @@ def run_PotreeConverter_exe_tile(original_file_path, original_file_name, current
         circle_list = cache.get('CIRCLE_DATA')
         track_list = cache.get('TRACT_DATA')
         track_list = track_list[point_cloud.cloud_id]
-        send_message({'status': 'null', 'cloud': {
-            "track": [track_list],  # tract_data CONFIG_FILE.TRACT_DATA
-            "point": [point_cloud],
-            "circle_point": circle_list,  # CONFIG_FILE.CIRCLE_DATA circle_point_list
-            "message": True
-        }})  # 发送给前端状态值
+        dict_data = {
+            'type': 'scan_cloud',
+            'cloud': {
+                "track": [track_list],  # tract_data CONFIG_FILE.TRACT_DATA
+                "point": [point_cloud],
+                "circle_point": circle_list,  # CONFIG_FILE.CIRCLE_DATA circle_point_list
+                "message": True
+            }
+        }
+        send_message(json.dumps(dict_data))
 
 
 if __name__ == '__main__':

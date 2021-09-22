@@ -6,7 +6,7 @@ class ConfigFile:
     __instance = None
     __flag = False
     CLOUD_ID = 0
-    OPEN_SOCKET = False  # 是否开始websocket False True
+    OPEN_SOCKET = True  # 是否开始websocket False True
     SOURCE_POINT_CLOUD_PATH = '/GOSLAM/Downloads/GOSLAMtemp/'  # TODO: why ? - ubuntu- /GOSLAM/Downloads/GOSLAMtemp/
     # DOWNLOAD_PATH_TEST = '/GOSLAM/Downloads/GOSLAM/'
     DOWNLOAD_PATH_TEST = r'D:/testbag/GOSLAM/'

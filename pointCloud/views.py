@@ -17,7 +17,7 @@ from libs.PotreeConverter import run_PotreeConverter_exe_tile
 from libs.globleConfig import CONFIG_FILE
 from libs.utils import set_scan_parameter
 from libs.scanParams import set_modify_params
-from slamShow.settings import global_thread_pool
+from slamShow.settings import global_thread_pool, history_timer
 from django.core.cache import cache
 from slamShow.settings import MEDIA_ROOT
 
@@ -43,7 +43,12 @@ def start_scan(request):
         CONFIG_FILE.SCAN_STATUS = 'pending'
         CONFIG_FILE.CLOUD_ID = 0
         if CONFIG_FILE.OPEN_SOCKET:
-            send_message(CONFIG_FILE.SCAN_STATUS)  # 发送给前端状态值
+            # send_message(CONFIG_FILE.SCAN_STATUS)  # 发送给前端状态值
+            dict_data = {
+                'status': CONFIG_FILE.SCAN_STATUS,
+                'type': 'scan_status'
+            }
+            send_message(json.dumps(dict_data))
 
     except Exception as e:
         return HttpResponse({'message': 'cache clear failed'}, status=202)
@@ -342,7 +347,12 @@ def device_ready(request):
     try:
         CONFIG_FILE.SCAN_STATUS = 'noStart'  # 修改状态值
         if CONFIG_FILE.OPEN_SOCKET:
-            send_message({'status': CONFIG_FILE.SCAN_STATUS, 'cloud': None})  # 发送给前端状态值
+            # send_message({'status': CONFIG_FILE.SCAN_STATUS, 'cloud': None})  # 发送给前端状态值
+            dict_data = {
+                'status': CONFIG_FILE.SCAN_STATUS,
+                'type': 'scan_status'
+            }
+            send_message(json.dumps(dict_data))
         return JsonResponse({'message': 'OK'})
     except  Exception as e:
         return JsonResponse({'message': 'failed'})
@@ -365,7 +375,12 @@ def stop_scan(request):
         CONFIG_FILE.SCAN_STATUS = 'stop'
         if CONFIG_FILE.OPEN_SOCKET:
             # send_message(CONFIG_FILE.SCAN_STATUS)  # 发送给前端状态值
-            send_message({'status': CONFIG_FILE.SCAN_STATUS, 'cloud': None})  # 发送给前端状态值
+            # send_message({'status': CONFIG_FILE.SCAN_STATUS, 'cloud': None})  # 发送给前端状态值
+            dict_data = {
+                'status': CONFIG_FILE.SCAN_STATUS,
+                'type': 'scan_status'
+            }
+            send_message(json.dumps(dict_data))
         print('停止扫描，停止数据请求操作，修改变量')
 
     except Exception as e:
@@ -626,7 +641,12 @@ def modify_project(request):
 @csrf_exempt
 def test_websocket(request):
     # SimpleEcho.handleMessage()
-    send_message('这是发送值')  # 以后修改为实际状态值
+    # send_message('这是发送值')  # 以后修改为实际状态值
+    dict_data = {
+        'status': '这是发送值',
+        'type': 'test'
+    }
+    send_message(json.dumps(dict_data))
     return JsonResponse({'message': 'OK'}, status=200, safe=False)
 
 
@@ -752,3 +772,17 @@ def config(request):
         get_info.delete()
         return JsonResponse({'is_record': 'ok'}, status=200, safe=False)
     return JsonResponse({'is_record': get_info.is_record}, status=200, safe=False)
+
+
+@csrf_exempt
+def history(request):
+    # st = os.statvfs('/')
+    # space = st.f_bavail * st.f_frsize / 1024 / 1024 // 1024
+    # all_space = st.f_blocks * st.f_frsize / 1024 / 1024 // 1024
+    if history_timer.timer is not None:
+        history_timer.stop()
+    history_timer.cloud_id = 0
+    history_timer.cloud_list = []
+    global_thread_pool.executor.submit(history_timer.start())
+
+    return JsonResponse({'message': 'OK'}, status=200, safe=False)
