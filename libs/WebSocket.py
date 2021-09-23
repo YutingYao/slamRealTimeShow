@@ -6,6 +6,7 @@ import hashlib
 from threading import Thread
 import struct
 import copy
+import json
 from libs.globleConfig import CONFIG_FILE
 
 global users
@@ -126,7 +127,7 @@ def send_message(message):
     for u in s_2:
         print('u--', u)
         data = json.dumps(message)
-        send_msg(u, bytes(data, encoding="utf-8"))
+        send_msg(u, bytes(message, encoding="utf-8"))
 
 
 if CONFIG_FILE.OPEN_SOCKET:

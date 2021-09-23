@@ -11,16 +11,19 @@ class SendHistoryCloud:
     def __init__(self):
         self.cloud_list = []
         self.max_id = 0
-        self.cloud_id = 0
+        self.cloud_id = 1
+        self.diff = 3
         self.timer = None
 
     def start(self):
         dict_data = {
-            history_cloud_id: self.cloud_id,
-            type: 'history'
+            'history_cloud_id': self.cloud_id,
+            'type': 'history'
         }
+        self.cloud_id += self.diff
         send_message(json.dumps(dict_data))  # 发送给前端状态值
-        self.timer = threading.Timer(0.5, start).start()
+        self.timer = threading.Timer(0.5, self.start)
+        self.timer.start()
 
     # 开始定时任务
     def heart_beat(self):

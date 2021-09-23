@@ -16,7 +16,7 @@ from pathlib import Path
 
 from libs.ProcessPool import ProcessPool
 from libs.ThreadPool import ThreadPool
-from libs.sendHistoryCloud import SendHistoryCloud
+# from libs.sendHistoryCloud import SendHistoryCloud
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -100,8 +100,8 @@ ROOT_URLCONF = 'slamShow.urls'
 global_process_pool = ProcessPool()
 
 global_thread_pool = ThreadPool()
-
-history_timer = SendHistoryCloud()
+# history_timer = ''
+# history_timer = SendHistoryCloud()
 # core -- template
 TEMPLATES = [
     {

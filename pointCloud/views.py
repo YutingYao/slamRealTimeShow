@@ -17,9 +17,12 @@ from libs.PotreeConverter import run_PotreeConverter_exe_tile
 from libs.globleConfig import CONFIG_FILE
 from libs.utils import set_scan_parameter
 from libs.scanParams import set_modify_params
-from slamShow.settings import global_thread_pool, history_timer
+from slamShow.settings import global_thread_pool
 from django.core.cache import cache
 from slamShow.settings import MEDIA_ROOT
+from libs.sendHistoryCloud import SendHistoryCloud
+
+history_timer = SendHistoryCloud()
 
 
 # TODO: 下面是所有接口
@@ -779,10 +782,13 @@ def history(request):
     # st = os.statvfs('/')
     # space = st.f_bavail * st.f_frsize / 1024 / 1024 // 1024
     # all_space = st.f_blocks * st.f_frsize / 1024 / 1024 // 1024
+    json_bytes = request.body
+    modify_dict = json.loads(json_bytes)
     if history_timer.timer is not None:
         history_timer.stop()
-    history_timer.cloud_id = 0
-    history_timer.cloud_list = []
+    history_timer.cloud_id = 1
+    history_timer.max_id = modify_dict['allId']
+    history_timer.diff = modify_dict['diff']
     global_thread_pool.executor.submit(history_timer.start())
 
     return JsonResponse({'message': 'OK'}, status=200, safe=False)
